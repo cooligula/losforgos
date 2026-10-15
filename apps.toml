@@ -109,7 +109,118 @@ variants = ["modified", "probe"]
 enabled = true
 
 # ---------------------------------------------------------------------------
+# Phase 2: Gradle projects with the app at the repository root (no :app module).
+# ---------------------------------------------------------------------------
+
+[apps.calculator]
+title = "Calculator"
+description = "Calculator"
+repo = "android_packages_apps_ExactCalculator"
+sha = "933974f9fd722e5c79ee0343a251ad5444ac8a23"
+application_id = "org.losforgos.calculator"
+build_file = "build.gradle.kts"
+gradle_task = ":assembleRelease"
+apk_dir = "build/outputs/apk/release"
+enabled = true
+
+[apps.deskclock]
+title = "Clock"
+description = "Alarm clock, timer and stopwatch"
+repo = "android_packages_apps_DeskClock"
+sha = "85cde5712f2f3eb6a0ffa9d6951ec4a83734586e"
+application_id = "org.losforgos.deskclock"
+build_file = "build.gradle"
+gradle_task = ":assembleRelease"
+apk_dir = "build/outputs/apk/release"
+base_version = "1.0"   # upstream declares no versionName
+enabled = true
+
+# The manifest declares this app as the replacement for the old AOSP clock packages.
+[[apps.deskclock.replace]]
+file = "AndroidManifest.xml"
+from = '<original-package android:name="com.android.alarmclock" />'
+to = ""
+
+[[apps.deskclock.replace]]
+file = "AndroidManifest.xml"
+from = '<original-package android:name="com.android.deskclock" />'
+to = ""
+
+# The default shared preferences file is named after the application id.
+[[apps.deskclock.replace]]
+file = "res/xml/data_extraction_rules.xml"
+from = "com.android.deskclock_preferences.xml"
+to = "org.losforgos.deskclock_preferences.xml"
+
+[apps.keyboard]
+title = "Keyboard"
+description = "Keyboard (AOSP LatinIME)"
+repo = "android_packages_inputmethods_LatinIME"
+sha = "e417ba6faa5dbb66ba70a038a52ddc8f60bb5795"
+application_id = "org.losforgos.keyboard"
+build_file = "build.gradle"
+gradle_task = ":assembleRelease"
+apk_dir = "build/outputs/apk/release"
+base_version = "1.0"
+native = true   # libjni_latinime; needs a memory tagging test on a Pixel 8 or newer
+enabled = true
+
+# Names that would clash with the AOSP keyboard when both are installed (GrapheneOS ships it):
+# the signature permission and the dictionary provider authority and actions.
+[[apps.keyboard.replace]]
+file = "java/src/com/android/inputmethod/latin/LatinIME.java"
+from = '"com.android.inputmethod.latin.HIDE_SOFT_INPUT"'
+to = '"org.losforgos.keyboard.HIDE_SOFT_INPUT"'
+
+[[apps.keyboard.replace]]
+file = "java/AndroidManifest.xml"
+from = 'com.android.inputmethod.latin.HIDE_SOFT_INPUT'
+to = 'org.losforgos.keyboard.HIDE_SOFT_INPUT'
+
+[[apps.keyboard.replace]]
+file = "java/src/com/android/inputmethod/dictionarypack/DictionaryPackConstants.java"
+from = '"com.android.inputmethod.dictionarypack.aosp"'
+to = '"org.losforgos.keyboard.dictionarypack"'
+
+[[apps.keyboard.replace]]
+file = "java/res/values/dictionary-pack.xml"
+from = ">com.android.inputmethod.dictionarypack.aosp<"
+to = ">org.losforgos.keyboard.dictionarypack<"
+
+[[apps.keyboard.replace]]
+file = "java/AndroidManifest.xml"
+from = "com.android.inputmethod.dictionarypack.aosp."
+to = "org.losforgos.keyboard.dictionarypack."
+
+# Native build: a current NDK (16 KB pages by default), arm64 only, and no -Werror so that
+# newer compiler warnings do not break the build. jcenter() is gone.
+[[apps.keyboard.replace]]
+file = "build.gradle"
+from = "ndkVersion '25.1.8937393'"
+to = "ndkVersion '27.3.13750724'"
+
+[[apps.keyboard.replace]]
+file = "build.gradle"
+from = 'testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"'
+to = """testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk { abiFilters 'arm64-v8a' }"""
+
+[[apps.keyboard.replace]]
+file = "build.gradle"
+from = "jcenter()"
+to = "mavenCentral()"
+
+[[apps.keyboard.replace]]
+file = "native/jni/AndroidNdk.mk"
+from = "LOCAL_CFLAGS += -Werror -Wall"
+to = "LOCAL_CFLAGS += -Wall"
+
+[[apps.keyboard.replace]]
+file = "native/jni/AndroidNdk.mk"
+from = "LOCAL_LDFLAGS += -ldl"
+to = "LOCAL_LDFLAGS += -ldl -Wl,-z,max-page-size=16384"
+
+# ---------------------------------------------------------------------------
 # Later phases: listed so the plan is visible, but not built yet.
 # ---------------------------------------------------------------------------
-# calculator (ExactCalculator), deskclock, keyboard (LatinIME): Gradle, need rename + checks.
 # messaging, contacts, dialer: Android.bp only, need a Gradle port (see docs/plan).

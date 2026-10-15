@@ -63,6 +63,30 @@
       "name": "Gcam Bridge (modified)",
       "preferredApkIndex": 0,
       "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Gcam Bridge \", \"apkFilterRegEx\": \"-modified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    },
+    {
+      "id": "org.losforgos.calculator",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Calculator",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Calculator \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    },
+    {
+      "id": "org.losforgos.deskclock",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Clock",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Clock \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    },
+    {
+      "id": "org.losforgos.keyboard",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Keyboard",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Keyboard \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
     }
   ]
 }

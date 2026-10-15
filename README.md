@@ -32,9 +32,12 @@ Verify a download: the APK's signing certificate SHA-256 is in the repository va
 | Twelve (music) | android_packages_apps_Twelve | building |
 | Camelot (PDF viewer) | android_packages_apps_Camelot | building |
 | Etar (calendar) | android_packages_apps_Etar | building |
+| Calculator | android_packages_apps_ExactCalculator | new, first build pending |
+| Clock | android_packages_apps_DeskClock | new, first build pending |
+| Keyboard | android_packages_inputmethods_LatinIME | new, first build pending, has native code |
+| Gcam Bridge | Gcam-Services-Provider (photosonly) | modified: forwards secure review to Glimpse; `probe` variant is a pre-release for debugging |
 
-Planned: calculator, clock, keyboard, then Messaging, Contacts and Dialer (these need a Gradle
-port). See [docs/plan.md](docs/plan.md).
+Planned: Messaging, Contacts and Dialer (these need a Gradle port). See [docs/plan.md](docs/plan.md).
 
 ## How it works
 

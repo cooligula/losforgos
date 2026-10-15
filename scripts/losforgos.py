@@ -143,6 +143,17 @@ def sub_once(text, pattern, repl, what):
     return new
 
 
+def set_field(text, name, value, value_re, after):
+    """Set a defaultConfig field; when upstream does not declare it, add it after the `after` line."""
+    pat = rf'({name}\s*=?\s*){value_re}'
+    if re.search(pat, text):
+        return sub_once(text, pat, lambda mm: f"{mm.group(1)}{value}", name)
+    m = re.search(rf'^([ \t]*){after}[^\n]*$', text, re.M)
+    if not m:
+        sys.exit(f"prepare: could not find {name} or a place to add it")
+    return text[:m.end()] + f"\n{m.group(1)}{name} = {value}" + text[m.end():]
+
+
 def cmd_prepare(args):
     _, apps = load()
     app = apps[args.app]
@@ -150,11 +161,9 @@ def cmd_prepare(args):
     build_file = src / app["build_file"]
     text = build_file.read_text()
 
-    # Upstream version name is kept as the prefix of ours.
-    m = re.search(r'versionName\s*=?\s*"([^"]*)"', text)
-    if not m:
-        sys.exit("prepare: no versionName found")
-    upstream_name = m.group(1)
+    # Upstream version name is kept as the prefix of ours (apps without one use base_version).
+    m = re.search(r'versionName\s*=?\s*["\']([^"\']*)["\']', text)
+    upstream_name = m.group(1) if m else app.get("base_version", "1.0")
 
     date = args.date or datetime.date.today().strftime("%Y%m%d")
     seq = int(args.seq)
@@ -163,12 +172,10 @@ def cmd_prepare(args):
 
     # Apps that must keep their upstream id (the Gcam bridge impersonates Google Photos on purpose).
     if app.get("rename_application_id", True):
-        text = sub_once(text, r'(applicationId\s*=?\s*)"[^"]+"',
+        text = sub_once(text, r'(?m)^([ \t]*applicationId\s*=?\s*)(["\'])[^"\']+\2',
                         lambda mm: f'{mm.group(1)}"{app["application_id"]}"', "applicationId")
-    text = sub_once(text, r'(versionCode\s*=?\s*)\d+',
-                    lambda mm: f"{mm.group(1)}{version_code}", "versionCode")
-    text = sub_once(text, r'(versionName\s*=?\s*)"[^"]*"',
-                    lambda mm: f'{mm.group(1)}"{version_name}"', "versionName")
+    text = set_field(text, "versionCode", str(version_code), r"\d+", "applicationId")
+    text = set_field(text, "versionName", f'"{version_name}"', r'["\'][^"\']*["\']', "applicationId")
     build_file.write_text(text)
 
     for rep in app["replace"]:
