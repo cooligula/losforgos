@@ -120,14 +120,16 @@ jobs:
           export KEYSTORE_PATH="$RUNNER_TEMP/losforgos.p12"
           echo "$KEYSTORE_B64" | base64 -d > "$KEYSTORE_PATH"
           trap 'rm -f "$KEYSTORE_PATH"' EXIT
-          for dir in unsigned/*/; do
-            app_dir="signed/$(basename "$dir")"   # artifact name is unique per app and variant
+          # With a single matching artifact the download action puts its files straight into
+          # unsigned/ instead of a subdirectory, so look for the APKs themselves.
+          mapfile -t apks < <(find unsigned -name '*-unsigned.apk' | sort)
+          [ "${#apks[@]}" -gt 0 ] || { echo "no unsigned APK found" >&2; find unsigned >&2; exit 1; }
+          for unsigned in "${apks[@]}"; do
+            base="$(basename "$unsigned" -unsigned.apk)"
+            app_dir="signed/$base"   # unique per app, variant and version
             mkdir -p "$app_dir"
-            meta="$dir/meta.json"
-            unsigned="$(ls "$dir"/*-unsigned.apk)"
-            name="$(basename "$unsigned" -unsigned.apk).apk"
-            bash scripts/sign.sh "$unsigned" "$app_dir/$name"
-            cp "$meta" "$app_dir/meta.json"
+            bash scripts/sign.sh "$unsigned" "$app_dir/$base.apk"
+            cp "$(dirname "$unsigned")/meta.json" "$app_dir/meta.json"
           done
 
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
