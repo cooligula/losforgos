@@ -115,7 +115,8 @@ def latest_input(bodies, app_name, variant):
 
 def cmd_plan(args):
     _, apps = load()
-    bodies = release_tags(args.repo) if args.repo and not args.all else {}
+    # Always read the releases: even a forced rebuild needs them to pick a free sequence number.
+    bodies = release_tags(args.repo) if args.repo else {}
     include = []
     today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
     for name, app in apps.items():
