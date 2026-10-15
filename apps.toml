@@ -72,6 +72,16 @@ repo = "android_packages_apps_Etar"
 sha = "8173ec802ed046d1670ec03962e686e393a85335"
 application_id = "org.losforgos.etar"
 enabled = true
+# AGP 9 rejects package= in the manifest (namespace is already in build.gradle.kts).
+[[apps.etar.replace]]
+file = "app/src/main/AndroidManifest.xml"
+from = 'package="org.lineageos.etar"'
+to = ""
+# shortcuts.xml cannot use ${applicationId}, so it is rewritten to the new id.
+[[apps.etar.replace]]
+file = "app/src/main/res/xml-v25/shortcuts.xml"
+from = 'android:targetPackage="org.lineageos.etar"'
+to = 'android:targetPackage="org.losforgos.etar"'
 
 # ---------------------------------------------------------------------------
 # Later phases: listed so the plan is visible, but not built yet.

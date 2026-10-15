@@ -53,8 +53,9 @@ port). See [docs/plan.md](docs/plan.md).
 
 1. Settings, Actions, General: allow GitHub Actions to create pull requests.
 2. Settings, Environments: create an environment named `release`, restricted to the `main` branch.
-3. Generate the key on your own machine: `scripts/gen-keystore.sh`, then run the `gh secret set`
-   commands it prints. Back the keystore up; losing it forces everyone to reinstall.
+3. Generate the key on your own machine: `scripts/gen-keystore.sh ~/losforgos-keystore OWNER/REPO`
+   (offers to `brew install` a JDK, and uploads the secrets if `gh` is logged in; otherwise run the `gh secret set`
+   commands it prints). Back the keystore up; losing it forces everyone to reinstall.
 4. Run the `build` workflow manually with "release" ticked to publish the first versions.
 
 ## Licenses
