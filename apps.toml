@@ -506,6 +506,198 @@ to = """String lookupNumber =
             : number;
     ContactInfo info = lookupContactFromUri(getContactInfoLookupUri(lookupNumber, directoryId));"""
 
+# Settings > Sounds and vibration without "Modify system settings". Upstream registers no click
+# listener on that entry (its onPreferenceClick is never called), so the sound fragment always
+# opened and crashed in onCreatePreferences while reading values the platform withholds. The tap is
+# now intercepted: a toast and the screen where the user grants the permission. The fragment
+# itself no longer trusts what it looks up.
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/app/settings/DialerSettingsActivity.java"
+from = "      soundSettings.setViewId(R.id.settings_header_sounds_and_vibration);"
+to = '''      soundSettings.setViewId(R.id.settings_header_sounds_and_vibration);
+      soundSettings.setOnPreferenceClickListener(this);'''
+
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/app/settings/DialerSettingsActivity.java"
+from = '''    public boolean onPreferenceClick(@NonNull Preference preference) {
+      if (preference.getTitle().equals(getString(R.string.sounds_and_vibration_title))) {
+        // If we don't have the permission to write to system settings, go to system sound
+        // settings instead. Otherwise, perform the super implementation (which launches our
+        // own preference fragment.
+        if (!Settings.System.canWrite(getContext())) {
+          Toast.makeText(getContext(),
+                          getResources().getString(R.string.toast_cannot_write_system_settings),
+                          Toast.LENGTH_SHORT)
+                  .show();
+          startActivity(new Intent(Settings.ACTION_SOUND_SETTINGS));
+          return true;
+        }
+      }
+      super.onPreferenceTreeClick(preference);
+      return false;
+    }
+'''
+to = '''    public boolean onPreferenceClick(@NonNull Preference preference) {
+      // Without the permission to write system settings the sound settings can only be read, so
+      // send the user to where it is granted. Returning false lets the preference open its
+      // fragment as usual.
+      if (SoundSettingsFragment.class.getName().equals(preference.getFragment())
+          && !Settings.System.canWrite(requireContext())) {
+        requestWriteSettingsPermission();
+        return true;
+      }
+      return false;
+    }
+
+    private void requestWriteSettingsPermission() {
+      Context context = requireContext();
+      try {
+        Toast.makeText(
+                context,
+                context.getString(R.string.toast_cannot_write_system_settings),
+                Toast.LENGTH_SHORT)
+            .show();
+      } catch (Throwable t) {
+        LogUtil.w("DialerSettingsActivity.requestWriteSettingsPermission", "no toast: %s", t);
+      }
+      Intent[] attempts = {
+        new Intent(
+            Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + context.getPackageName())),
+        new Intent(Settings.ACTION_SOUND_SETTINGS)
+      };
+      for (Intent intent : attempts) {
+        try {
+          startActivity(intent);
+          return;
+        } catch (android.content.ActivityNotFoundException | SecurityException e) {
+          LogUtil.w(
+              "DialerSettingsActivity.requestWriteSettingsPermission",
+              "cannot open %s: %s",
+              intent.getAction(),
+              e);
+        }
+      }
+    }
+'''
+
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/app/settings/SoundSettingsFragment.java"
+from = '''    if (hasVibrator()) {
+      vibrateWhenRinging.setOnPreferenceChangeListener(this);
+    } else {'''
+to = '''    if (hasVibrator()) {
+      if (vibrateWhenRinging != null) {
+        vibrateWhenRinging.setOnPreferenceChangeListener(this);
+      }
+    } else {'''
+
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/app/settings/SoundSettingsFragment.java"
+from = '''      ps.removePreference(vibrateWhenRinging);
+      ps.removePreference(inCallVibrateOutgoing);
+      ps.removePreference(inCallVibrateCallWaiting);
+      ps.removePreference(inCallVibrateHangup);
+      ps.removePreference(inCallVibrate45Secs);
+'''
+to = '''      removeIfPresent(ps, vibrateWhenRinging);
+      removeIfPresent(ps, inCallVibrateOutgoing);
+      removeIfPresent(ps, inCallVibrateCallWaiting);
+      removeIfPresent(ps, inCallVibrateHangup);
+      removeIfPresent(ps, inCallVibrate45Secs);
+'''
+
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/app/settings/SoundSettingsFragment.java"
+from = '''    playDtmfTone.setOnPreferenceChangeListener(this);
+    playDtmfTone.setChecked(shouldPlayDtmfTone());
+
+    enableDndInCall.setOnPreferenceChangeListener(this);
+
+    TelephonyManager telephonyManager =
+            (TelephonyManager) getActivity().getSystemService(Context.TELEPHONY_SERVICE);
+    if (telephonyManager.canChangeDtmfToneLength()
+            && (telephonyManager.isWorldPhone() || !shouldHideCarrierSettings())) {
+      dtmfToneLength.setOnPreferenceChangeListener(this);
+      dtmfToneLength.setValueIndex(
+              Settings.System.getInt(
+                      context.getContentResolver(),
+                      Settings.System.DTMF_TONE_TYPE_WHEN_DIALING,
+                      DTMF_TONE_TYPE_NORMAL));
+    } else {
+      getPreferenceScreen().removePreference(dtmfToneLength);
+      dtmfToneLength = null;
+    }
+    if (!CallRecorderService.isEnabled(getActivity())) {
+      getPreferenceScreen().removePreference(
+              findPreference(context.getString(R.string.call_recording_category_key)));
+    }
+'''
+to = '''    if (playDtmfTone != null) {
+      playDtmfTone.setOnPreferenceChangeListener(this);
+      playDtmfTone.setChecked(shouldPlayDtmfTone());
+    }
+
+    if (enableDndInCall != null) {
+      enableDndInCall.setOnPreferenceChangeListener(this);
+    }
+
+    if (dtmfToneLength != null && shouldShowDtmfToneLength()) {
+      dtmfToneLength.setOnPreferenceChangeListener(this);
+      dtmfToneLength.setValueIndex(
+              Settings.System.getInt(
+                      context.getContentResolver(),
+                      Settings.System.DTMF_TONE_TYPE_WHEN_DIALING,
+                      DTMF_TONE_TYPE_NORMAL));
+    } else {
+      removeIfPresent(getPreferenceScreen(), dtmfToneLength);
+      dtmfToneLength = null;
+    }
+    if (!CallRecorderService.isEnabled(getActivity())) {
+      removeIfPresent(
+              getPreferenceScreen(),
+              findPreference(context.getString(R.string.call_recording_category_key)));
+    }
+'''
+
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/app/settings/SoundSettingsFragment.java"
+from = '''  private void updateRingtonePreferenceSummary() {
+'''
+to = '''  private void updateRingtonePreferenceSummary() {
+    if (ringtonePreference == null) {
+      return;
+    }
+'''
+
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/app/settings/SoundSettingsFragment.java"
+from = '''  /** Whether the device hardware has a vibrator. */
+'''
+to = '''  private static void removeIfPresent(PreferenceScreen screen, Preference preference) {
+    if (screen != null && preference != null) {
+      screen.removePreference(preference);
+    }
+  }
+
+  /**
+   * Whether the DTMF tone length can be chosen. Both the telephony and the carrier configuration
+   * lookups throw for an app without the matching privileges, which then simply means "hide it".
+   */
+  private boolean shouldShowDtmfToneLength() {
+    try {
+      TelephonyManager telephonyManager =
+          (TelephonyManager) requireActivity().getSystemService(Context.TELEPHONY_SERVICE);
+      return telephonyManager != null
+          && telephonyManager.canChangeDtmfToneLength()
+          && (telephonyManager.isWorldPhone() || !shouldHideCarrierSettings());
+    } catch (Throwable t) {
+      return false;
+    }
+  }
+
+  /** Whether the device hardware has a vibrator. */
+'''
+
 # ---------------------------------------------------------------------------
 # Later phases: listed so the plan is visible, but not built yet.
 # ---------------------------------------------------------------------------
