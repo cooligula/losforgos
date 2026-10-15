@@ -102,14 +102,18 @@ start a conversation, and it asks for the role when you try.
 
 ## Contacts notes
 
-Installed as `org.losforgos.contacts`, so it can sit next to a system Contacts app; it talks to the
-system contacts provider like any other contacts app.
+Runs as a normal user app on the system contacts provider: it is not a replacement provider, and it
+uses the `org.losforgos.contacts` provider authorities, so it can sit next to a system Contacts app.
 
+- Account sync uses the accounts already on the phone; the app adds none.
 - The vcard library and the few PhoneCommon and frameworks/ex classes upstream gets from other Android
   projects are fetched at the AOSP tag LineageOS 24.0 uses (`deps` in `apps.toml`).
-- The privileged permissions of the manifest (profile, account management and so on) are ordinary
-  requests here: a normal app does not receive them. Setting the default account for new contacts
-  needs one of them, so that choice is probably not saved.
+- The privileged permissions of the manifest (profile, account management and so on) are simply not
+  granted to a normal app.
+- Choosing a default account for new contacts may not persist: the setter is a system-only API, called
+  by reflection, and does nothing here.
+- Features that need those privileges, such as parts of profile editing or SIM contact import where
+  the system blocks it, may be limited.
 - Code shrinking is off.
 
 ## How it works
