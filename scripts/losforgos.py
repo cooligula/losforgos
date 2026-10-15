@@ -221,7 +221,8 @@ def cmd_prepare(args):
     # Several variants of one app need distinct tags; single-variant apps keep the short form.
     multi = len(app["variants"]) > 1
     tag = f"{args.app}-v{version_name}" + (f"-{args.variant}" if multi else "")
-    prerelease = args.variant in app.get("prerelease_variants", ["probe"])
+    # Experimental ports are published as pre-releases, which Obtainium skips by default.
+    prerelease = args.variant in app.get("prerelease_variants", ["probe"]) or app.get("experimental", False)
 
     meta = {
         "app": args.app, "variant": args.variant, "title": app["title"],
