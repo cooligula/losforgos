@@ -62,9 +62,9 @@ Verify a download: the APK's signing certificate SHA-256 is in the repository va
 | Twelve (music) | android_packages_apps_Twelve | building |
 | Camelot (PDF viewer) | android_packages_apps_Camelot | building |
 | Etar (calendar) | android_packages_apps_Etar | building |
-| Calculator | android_packages_apps_ExactCalculator | new, first build pending |
-| Clock | android_packages_apps_DeskClock | new, first build pending |
-| Keyboard | android_packages_inputmethods_LatinIME | new, first build pending, has native code |
+| Calculator | android_packages_apps_ExactCalculator | building |
+| Clock | android_packages_apps_DeskClock | building |
+| Keyboard | android_packages_inputmethods_LatinIME | building, has native code |
 | Dialer (phone) | android_packages_apps_Dialer | Gradle port, tested on a device, see [Dialer notes](#dialer-notes) |
 | Messaging (SMS and MMS) | android_packages_apps_Messaging | Gradle port, tested on a device, has native code, see [Messaging notes](#messaging-notes) |
 | Contacts | android_packages_apps_Contacts | Gradle port, tested on a device, see [Contacts notes](#contacts-notes) |
