@@ -86,4 +86,5 @@ dependencies {
     implementation("com.google.code.findbugs:jsr305:3.0.2")
     implementation("com.google.guava:guava:33.2.1-android")
     implementation("com.googlecode.libphonenumber:libphonenumber:9.0.41")
+    implementation("com.googlecode.libphonenumber:geocoder:3.41")
 }

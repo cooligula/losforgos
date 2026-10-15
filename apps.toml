@@ -935,3 +935,31 @@ from = '''        <activity
             </intent-filter>
         </activity>'''
 to = ""
+
+# Setting the default account for new contacts is a system API guarded by a signature permission
+# (android.permission.SET_DEFAULT_ACCOUNT_FOR_CONTACTS), which an ordinary app is never granted, so
+# the permission check fails and the setter is not reached. The permission is named by its string and
+# the setter is called by reflection, which keeps the behaviour where the permission is granted.
+[[apps.contacts.replace]]
+file = "src/com/android/contacts/preference/ContactsPreferences.java"
+from = "import static android.Manifest.permission.SET_DEFAULT_ACCOUNT_FOR_CONTACTS;\n"
+to = ""
+
+[[apps.contacts.replace]]
+file = "src/com/android/contacts/preference/ContactsPreferences.java"
+from = "checkSelfPermission(SET_DEFAULT_ACCOUNT_FOR_CONTACTS)"
+to = 'checkSelfPermission("android.permission.SET_DEFAULT_ACCOUNT_FOR_CONTACTS")'
+
+[[apps.contacts.replace]]
+file = "src/com/android/contacts/preference/ContactsPreferences.java"
+from = '''                DefaultAccount.setDefaultAccountForNewContacts(
+                        mContext.getContentResolver(), defaultAccountAndState);'''
+to = '''                try {
+                    DefaultAccount.class
+                            .getMethod("setDefaultAccountForNewContacts",
+                                    android.content.ContentResolver.class,
+                                    DefaultAccountAndState.class)
+                            .invoke(null, mContext.getContentResolver(), defaultAccountAndState);
+                } catch (ReflectiveOperationException e) {
+                    return false;
+                }'''
