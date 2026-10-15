@@ -324,18 +324,169 @@ file = "AndroidManifest.xml"
 from = 'android:process="com.android.incallui"'
 to = 'android:process=":incallui"'
 
-# Newer platform APIs than the SDK the port compiles against. The notification loses its
-# "promoted ongoing" request, and the voicemail IPv4 wait checks the link addresses instead of
-# asking the platform whether 8.8.8.8 is reachable.
-[[apps.dialer.replace]]
-file = "java/com/android/incallui/StatusBarNotifier.java"
-from = "builder.setRequestPromotedOngoing(true);"
-to = "// builder.setRequestPromotedOngoing(true): needs a newer SDK."
-
+# Newer platform APIs than the SDK the port compiles against. The voicemail IPv4 wait checks the
+# link addresses instead of asking the platform whether 8.8.8.8 is reachable, and the "promoted
+# ongoing" request (Android 16) is made by reflection.
 [[apps.dialer.replace]]
 file = "java/com/android/voicemail/impl/sync/VvmNetworkRequestCallback.java"
 from = '(lp.isReachable(InetAddresses.parseNumericAddress("8.8.8.8")));'
 to = "lp.getLinkAddresses().stream().anyMatch(a -> a.getAddress() instanceof java.net.Inet4Address);"
+
+# In-call notification in the style of Google's Phone: a CallStyle card (coloured while a call is
+# in progress) with Hang up, Speaker and Mute for a call in progress, Decline and Answer for an
+# incoming one, and a request to be promoted to a live-update chip on Android 16.
+[[apps.dialer.replace]]
+file = "java/com/android/incallui/StatusBarNotifier.java"
+from = "builder.setRequestPromotedOngoing(true);"
+to = """builder.setColorized(true);
+        requestPromotedOngoing(builder);"""
+
+[[apps.dialer.replace]]
+file = "java/com/android/incallui/StatusBarNotifier.java"
+from = "createIncomingCallNotification(call, callState, callAudioState, builder);"
+to = """createIncomingCallNotification(
+          call, callState, callAudioState, builder, contactInfo, contentTitle, largeIcon);"""
+
+[[apps.dialer.replace]]
+file = "java/com/android/incallui/StatusBarNotifier.java"
+from = '''  private void createIncomingCallNotification(
+      DialerCall call, int state, CallAudioState callAudioState, Notification.Builder builder) {
+    setNotificationWhen(call, state, builder);
+
+    // Add hang up option for any active calls (active | onhold), outgoing calls (dialing).
+    if (state == DialerCallState.ACTIVE
+        || state == DialerCallState.ONHOLD
+        || DialerCallState.isDialing(state)) {
+      addHangupAction(builder);
+      addSpeakerAction(builder, callAudioState);
+    } else if (state == DialerCallState.INCOMING || state == DialerCallState.CALL_WAITING) {
+      addDismissAction(builder);
+      if (call.isVideoCall()) {
+        addVideoCallAction(builder);
+      } else {
+        addAnswerAction(builder);
+      }
+    }
+  }
+'''
+to = '''  private void createIncomingCallNotification(
+      DialerCall call,
+      int state,
+      CallAudioState callAudioState,
+      Notification.Builder builder,
+      ContactCacheEntry contactInfo,
+      String contentTitle,
+      Bitmap largeIcon) {
+    setNotificationWhen(call, state, builder);
+
+    if (state == DialerCallState.ACTIVE
+        || state == DialerCallState.ONHOLD
+        || DialerCallState.isDialing(state)) {
+      // Calls in progress (active | onhold) and outgoing calls (dialing): the style supplies the
+      // hang up button, Speaker and Mute are added next to it.
+      builder.setStyle(
+          Notification.CallStyle.forOngoingCall(
+              buildCallPerson(call, contactInfo, contentTitle, largeIcon),
+              createNotificationPendingIntent(context, ACTION_HANG_UP_ONGOING_CALL)));
+      addSpeakerAction(builder, callAudioState);
+      addMuteAction(builder, callAudioState);
+    } else if (state == DialerCallState.INCOMING || state == DialerCallState.CALL_WAITING) {
+      boolean isVideo = call.isVideoCall();
+      builder.setStyle(
+          Notification.CallStyle.forIncomingCall(
+                  buildCallPerson(call, contactInfo, contentTitle, largeIcon),
+                  createNotificationPendingIntent(context, ACTION_DECLINE_INCOMING_CALL),
+                  createNotificationPendingIntent(
+                      context,
+                      isVideo
+                          ? ACTION_ANSWER_VIDEO_INCOMING_CALL
+                          : ACTION_ANSWER_VOICE_INCOMING_CALL))
+              .setIsVideo(isVideo));
+    }
+  }
+
+  /** The caller, as the call style shows it. */
+  private Person buildCallPerson(
+      DialerCall call, ContactCacheEntry contactInfo, String contentTitle, Bitmap largeIcon) {
+    // The style refuses a person without a name.
+    Person.Builder person =
+        new Person.Builder()
+            .setName(
+                TextUtils.isEmpty(contentTitle)
+                    ? getContentString(call, contactInfo.userType)
+                    : contentTitle);
+    if (largeIcon != null) {
+      person.setIcon(Icon.createWithBitmap(largeIcon));
+    }
+    // Same choice of uri as addPersonReference.
+    if (contactInfo.lookupUri != null && contactInfo.userType != ContactsUtils.USER_TYPE_WORK) {
+      person.setUri(contactInfo.lookupUri.toString());
+    } else if (!TextUtils.isEmpty(call.getNumber())) {
+      person.setUri(Uri.fromParts(PhoneAccount.SCHEME_TEL, call.getNumber(), null).toString());
+    }
+    return person.build();
+  }
+
+  private void addMuteAction(Notification.Builder builder, CallAudioState callAudioState) {
+    boolean isMuted = callAudioState.isMuted();
+    LogUtil.d(
+        "StatusBarNotifier.addMuteAction",
+        "will show \"%s\" action in the ongoing call Notification",
+        isMuted ? "Unmute" : "Mute");
+    builder.addAction(
+        new Notification.Action.Builder(
+                Icon.createWithResource(
+                    context,
+                    isMuted
+                        ? R.drawable.quantum_ic_mic_vd_theme_24
+                        : R.drawable.quantum_ic_mic_off_vd_theme_24),
+                context.getText(
+                    isMuted ? R.string.notification_action_unmute : R.string.notification_action_mute),
+                createNotificationPendingIntent(
+                    context,
+                    isMuted
+                        ? NotificationBroadcastReceiver.ACTION_TURN_OFF_MUTE
+                        : NotificationBroadcastReceiver.ACTION_TURN_ON_MUTE))
+            .build());
+  }
+
+  /** Asks to be shown as a live update (Android 16 and later); older platforms ignore it. */
+  private static void requestPromotedOngoing(Notification.Builder builder) {
+    if (android.os.Build.VERSION.SDK_INT < 36) {
+      return;
+    }
+    try {
+      Notification.Builder.class
+          .getMethod("setRequestPromotedOngoing", boolean.class)
+          .invoke(builder, true);
+    } catch (Throwable t) {
+      LogUtil.w("StatusBarNotifier.requestPromotedOngoing", "not available: %s", t);
+    }
+  }
+'''
+
+[[apps.dialer.replace]]
+file = "java/com/android/incallui/NotificationBroadcastReceiver.java"
+from = 'public static final String ACTION_TURN_ON_SPEAKER = "com.android.incallui.ACTION_TURN_ON_SPEAKER";'
+to = '''public static final String ACTION_TURN_ON_MUTE = "com.android.incallui.ACTION_TURN_ON_MUTE";
+  public static final String ACTION_TURN_OFF_MUTE = "com.android.incallui.ACTION_TURN_OFF_MUTE";
+  public static final String ACTION_TURN_ON_SPEAKER = "com.android.incallui.ACTION_TURN_ON_SPEAKER";'''
+
+[[apps.dialer.replace]]
+file = "java/com/android/incallui/NotificationBroadcastReceiver.java"
+from = "    } else if (action.equals(ACTION_TURN_OFF_SPEAKER)) {"
+to = '''    } else if (action.equals(ACTION_TURN_ON_MUTE)) {
+      TelecomAdapter.getInstance().mute(true);
+    } else if (action.equals(ACTION_TURN_OFF_MUTE)) {
+      TelecomAdapter.getInstance().mute(false);
+    } else if (action.equals(ACTION_TURN_OFF_SPEAKER)) {'''
+
+[[apps.dialer.replace]]
+file = "java/com/android/incallui/res/values/strings.xml"
+from = '<string name="notification_action_speaker_off">Turn speaker off</string>'
+to = '''<string name="notification_action_speaker_off">Turn speaker off</string>
+  <string name="notification_action_mute">Mute</string>
+  <string name="notification_action_unmute">Unmute</string>'''
 
 # Match contacts whichever way the country prefix is written (see ports/dialer/java/.../phonematch):
 # the incoming call screen, and the call log and missed call notifications.
