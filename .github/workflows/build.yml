@@ -33,6 +33,8 @@ jobs:
       any: ${{ steps.plan.outputs.any }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Obtainium links match apps.toml
+        run: python3 scripts/losforgos.py deeplink --check
       - id: plan
         env:
           GH_TOKEN: ${{ github.token }}
