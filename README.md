@@ -66,9 +66,10 @@ Verify a download: the APK's signing certificate SHA-256 is in the repository va
 | Keyboard | android_packages_inputmethods_LatinIME | new, first build pending, has native code |
 | Dialer (phone) | android_packages_apps_Dialer | Gradle port, tested on a device, see [Dialer notes](#dialer-notes) |
 | Messaging (SMS and MMS) | android_packages_apps_Messaging | Gradle port, tested on a device, has native code, see [Messaging notes](#messaging-notes) |
+| Contacts | android_packages_apps_Contacts | experimental Gradle port, not tested yet, pre-release only, see [Contacts notes](#contacts-notes) |
 | Gcam Bridge | Gcam-Services-Provider (photosonly) | modified: forwards secure review to Glimpse; `probe` variant is a pre-release for debugging |
 
-Planned: Contacts (needs a Gradle port). See [docs/plan.md](docs/plan.md).
+See [docs/plan.md](docs/plan.md) for the plan.
 
 ## Dialer notes
 
@@ -97,6 +98,19 @@ start a conversation, and it asks for the role when you try.
 - Code shrinking is off (classes loaded by name would be removed).
 - Tested on a device as the default SMS app: sending and receiving SMS. MMS and the GIF resizing are
   built the same way but have not been exercised yet.
+
+## Contacts notes
+
+Experimental: published as a pre-release only, so Obtainium does not offer it, and built only when
+asked for by name (`only: contacts`). It is installed as `org.losforgos.contacts`, so it can sit next
+to a system Contacts app and talks to the system contacts provider like any other contacts app.
+
+- The vcard library and the few PhoneCommon and frameworks/ex classes upstream gets from other Android
+  projects are fetched at the AOSP tag LineageOS 24.0 uses (`deps` in `apps.toml`).
+- The privileged permissions of the manifest (profile, account management and so on) are ordinary
+  requests here: a normal app does not receive them. The code paths that need them have not been
+  audited yet; that is part of the first test.
+- Code shrinking is off while the port is experimental.
 
 ## How it works
 

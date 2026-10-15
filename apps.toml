@@ -837,7 +837,101 @@ to = '''
     <string name="losforgos_conversation_creation_failed">Couldn\'t start the conversation. Check the number, and that Messaging is the default SMS app.</string>
 </resources>'''
 
-# ---------------------------------------------------------------------------
-# Later phases: listed so the plan is visible, but not built yet.
-# ---------------------------------------------------------------------------
-# contacts: Android.bp only, needs a Gradle port (see docs/plan).
+# Contacts: the contacts app, usable as the default contacts handler. ports/contacts holds the Gradle
+# build. Experimental until it has been tried on a phone: published as a pre-release, left out of
+# Obtainium, and only built when asked for by name.
+[apps.contacts]
+title = "Contacts"
+description = "Contacts app"
+repo = "android_packages_apps_Contacts"
+sha = "28137197bf5b6a4e3baf9de36d52e0e471ac1d47"
+application_id = "org.losforgos.contacts"
+build_file = "build.gradle.kts"
+gradle_task = ":assembleRelease"
+apk_dir = "build/outputs/apk/release"
+gradle_version = "8.14.3"
+overlay = "contacts"
+post_scripts = ["ports/contacts/prepare.py"]
+base_version = "1.0"
+experimental = true
+enabled = true
+
+# The libraries that Android.bp lists as static_libs and that are separate projects of the Android
+# source tree. They are pinned to the AOSP tag that the LineageOS manifest (lineage-24.0) is based
+# on, android-17.0.0_r1, and are not moved by `bump`. Only a few classes of PhoneCommon and
+# frameworks/ex are used; ports/contacts/prepare.py copies them.
+[[apps.contacts.deps]]
+name = "vcard"
+url = "https://android.googlesource.com/platform/frameworks/opt/vcard"
+sha = "e33e498766f7860fb58fca9f2757123ec78c983e"
+dest = "libs/vcard"
+
+[[apps.contacts.deps]]
+name = "phonecommon"
+url = "https://android.googlesource.com/platform/packages/apps/PhoneCommon"
+sha = "c024bf5d7505001a59c904e96cd1b9b70dce31b3"
+dest = "libs/phonecommon"
+
+[[apps.contacts.deps]]
+name = "ex"
+url = "https://android.googlesource.com/platform/frameworks/ex"
+sha = "4080c2d3e5a6387e0d064ce5744d56fc6a7c9bb7"
+dest = "libs/ex"
+
+# Names shared with the system Contacts (content provider authorities) have to change, or the install
+# would clash where a system Contacts exists. The ContactsProvider authority com.android.contacts, used
+# in searchable.xml and in the queries, is the system provider's and stays.
+[[apps.contacts.replace]]
+file = "res/values/donottranslate_config.xml"
+from = "com.android.contacts.files"
+to = "org.losforgos.contacts.files"
+
+[[apps.contacts.replace]]
+file = "res/values/donottranslate_config.xml"
+from = "com.android.contacts.sdn"
+to = "org.losforgos.contacts.sdn"
+
+# shortcuts.xml cannot use ${applicationId}, so it is rewritten to the new id.
+[[apps.contacts.replace]]
+file = "res/xml/shortcuts.xml"
+from = 'android:targetPackage="com.android.contacts"'
+to = 'android:targetPackage="org.losforgos.contacts"'
+
+# This app is not the system package com.android.contacts.
+[[apps.contacts.replace]]
+file = "AndroidManifest.xml"
+from = '<original-package android:name="com.android.contacts"/>'
+to = ""
+
+# NonPhoneActivity answers the dialer intents (tel: links, call log) on devices without a phone, at the
+# lowest priority. Here the Dialer is a separate app and a stray entry would show up in its choosers.
+[[apps.contacts.replace]]
+file = "AndroidManifest.xml"
+from = '''        <activity
+            android:name="com.android.contacts.NonPhoneActivity"
+            android:exported="true"
+            android:theme="@style/NonPhoneActivityTheme">
+            <intent-filter android:priority="-1">
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+            </intent-filter>
+            <intent-filter android:priority="-1">
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data android:scheme="tel"/>
+            </intent-filter>
+            <intent-filter android:priority="-1">
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data android:mimeType="vnd.android.cursor.dir/calls"/>
+            </intent-filter>
+        </activity>'''
+to = ""
