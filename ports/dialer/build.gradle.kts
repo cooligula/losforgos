@@ -120,7 +120,6 @@ dependencies {
     implementation(files(
         "prebuilts/apache-mime4j-core-0.8.9.jar",
         "prebuilts/apache-mime4j-dom-0.8.9.jar",
-        "prebuilts/commons-io-2.13.0.jar",
     ))
 
     implementation("javax.inject:javax.inject:1")
