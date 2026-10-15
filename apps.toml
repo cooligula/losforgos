@@ -337,6 +337,25 @@ file = "java/com/android/voicemail/impl/sync/VvmNetworkRequestCallback.java"
 from = '(lp.isReachable(InetAddresses.parseNumericAddress("8.8.8.8")));'
 to = "lp.getLinkAddresses().stream().anyMatch(a -> a.getAddress() instanceof java.net.Inet4Address);"
 
+# Match contacts whichever way the country prefix is written (see ports/dialer/java/.../phonematch):
+# the incoming call screen, and the call log and missed call notifications.
+[[apps.dialer.replace]]
+file = "java/com/android/incallui/CallerInfoAsyncQuery.java"
+from = "Uri uri = ContactInfoHelper.getContactInfoLookupUri(info.phoneNumber);"
+to = """Uri uri =
+        ContactInfoHelper.getContactInfoLookupUri(
+            com.android.dialer.phonematch.NationalNumberMatcher.resolveForLookup(
+                context, info.phoneNumber));"""
+
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/phonenumbercache/ContactInfoHelper.java"
+from = "ContactInfo info = lookupContactFromUri(getContactInfoLookupUri(number, directoryId));"
+to = """String lookupNumber =
+        directoryId == -1
+            ? com.android.dialer.phonematch.NationalNumberMatcher.resolveForLookup(context, number)
+            : number;
+    ContactInfo info = lookupContactFromUri(getContactInfoLookupUri(lookupNumber, directoryId));"""
+
 # ---------------------------------------------------------------------------
 # Later phases: listed so the plan is visible, but not built yet.
 # ---------------------------------------------------------------------------
