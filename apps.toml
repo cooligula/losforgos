@@ -202,6 +202,20 @@ file = "java/res/**/*.xml"
 from = "http://schemas.android.com/apk/res/com.android.inputmethod.latin"
 to = "http://schemas.android.com/apk/res-auto"
 
+# Resources are looked up by name under the package of R, which is the Gradle namespace
+# (com.android.inputmethod.latin); the resource table of the APK carries the application id. With
+# the namespace, getIdentifier() returns 0 for every subtype name and dictionary, and the first
+# getString(0) (subtype display names, e.g. en_US) throws Resources.NotFoundException.
+[[apps.keyboard.replace]]
+file = "java/src/com/android/inputmethod/latin/utils/DictionaryInfoUtils.java"
+from = "R.class.getPackage().getName()"
+to = '"org.losforgos.keyboard"'
+
+[[apps.keyboard.replace]]
+file = "java/src/com/android/inputmethod/latin/utils/SubtypeLocaleUtils.java"
+from = "R.class.getPackage().getName()"
+to = '"org.losforgos.keyboard"'
+
 # Native build: a current NDK (16 KB pages by default), arm64 only, and no -Werror so that
 # newer compiler warnings do not break the build. jcenter() is gone.
 [[apps.keyboard.replace]]
