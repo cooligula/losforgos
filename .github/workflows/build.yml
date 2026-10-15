@@ -1,0 +1,140 @@
+name: build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Comma separated app names (empty = all that changed)"
+        required: false
+      force:
+        description: "Rebuild even when the inputs did not change"
+        type: boolean
+        default: false
+      release:
+        description: "Sign and publish a release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      any: ${{ steps.plan.outputs.any }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          FORCE: ${{ inputs.force }}
+          ONLY: ${{ inputs.only }}
+        run: |
+          args=(--repo "$GITHUB_REPOSITORY")
+          # Pull requests always build everything enabled, to catch patches that stopped applying.
+          if [ "$EVENT" = "pull_request" ] || [ "$FORCE" = "true" ]; then args+=(--all); fi
+          if [ -n "$ONLY" ]; then args+=(--only "$ONLY"); fi
+          matrix="$(python3 scripts/losforgos.py plan "${args[@]}")"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "any=$(echo "$matrix" | python3 -c 'import json,sys;print("true" if json.load(sys.stdin)["include"] else "false")')" >> "$GITHUB_OUTPUT"
+          echo "$matrix" | python3 -m json.tool
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.any == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: zulu
+          java-version: ${{ matrix.java }}
+
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - name: Fetch upstream
+        run: python3 scripts/losforgos.py fetch ${{ matrix.app }}
+
+      - name: Rename, version and patch
+        run: >
+          python3 scripts/losforgos.py prepare ${{ matrix.app }}
+          --variant ${{ matrix.variant }} --date ${{ matrix.date }} --seq ${{ matrix.seq }}
+
+      - name: Build unsigned APK
+        run: bash scripts/build.sh ${{ matrix.app }}
+
+      - name: Native libraries and alignment
+        run: bash scripts/check-apk.sh dist/${{ matrix.app }}/*.apk
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: unsigned-${{ matrix.app }}-${{ matrix.variant }}
+          path: dist/${{ matrix.app }}/
+          if-no-files-found: error
+
+  release:
+    needs: [plan, build]
+    if: >
+      always() && needs.build.result == 'success' &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'workflow_dispatch' && inputs.release))
+    runs-on: ubuntu-latest
+    environment: release   # holds the signing secrets
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: unsigned-*
+          path: unsigned
+
+      - name: Sign
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          CERT_SHA256: ${{ vars.CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          [ -n "$KEYSTORE_B64" ] || { echo "KEYSTORE_B64 secret is missing" >&2; exit 1; }
+          export KEYSTORE_PATH="$RUNNER_TEMP/losforgos.p12"
+          echo "$KEYSTORE_B64" | base64 -d > "$KEYSTORE_PATH"
+          trap 'rm -f "$KEYSTORE_PATH"' EXIT
+          for dir in unsigned/*/; do
+            app_dir="signed/$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['app'])" "$dir/meta.json")"
+            mkdir -p "$app_dir"
+            meta="$dir/meta.json"
+            unsigned="$(ls "$dir"/*-unsigned.apk)"
+            name="$(basename "$unsigned" -unsigned.apk).apk"
+            bash scripts/sign.sh "$unsigned" "$app_dir/$name"
+            cp "$meta" "$app_dir/meta.json"
+          done
+
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: signed/*/*.apk
+
+      - name: Publish releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/release.py signed "$GITHUB_REPOSITORY"

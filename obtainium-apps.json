@@ -1,0 +1,60 @@
+{
+  "apps": [
+    {
+      "id": "org.losforgos.glimpse",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Glimpse",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Glimpse \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    },
+    {
+      "id": "org.losforgos.aperture",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Aperture",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Aperture \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    },
+    {
+      "id": "org.losforgos.jelly",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Jelly",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Jelly \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    },
+    {
+      "id": "org.losforgos.recorder",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Recorder",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Recorder \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    },
+    {
+      "id": "org.losforgos.twelve",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Twelve",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Twelve \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    },
+    {
+      "id": "org.losforgos.camelot",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Camelot",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Camelot \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    },
+    {
+      "id": "org.losforgos.etar",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Etar",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Etar \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+samples/*
+work/
+dist/
+signed/
+unsigned/
+keystore/
+*.jks
+*.p12
+*.keystore
+.DS_Store
