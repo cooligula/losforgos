@@ -1,0 +1,84 @@
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+index c516626..c46915e 100644
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -3,0 +4,12 @@
++    <!-- Lets the redirect activity find the gallery that handles secure reviews. -->
++    <queries>
++        <intent>
++            <action android:name="android.provider.action.REVIEW_SECURE" />
++            <data android:scheme="content" android:mimeType="image/*" />
++        </intent>
++        <intent>
++            <action android:name="android.provider.action.REVIEW_SECURE" />
++            <data android:scheme="content" android:mimeType="video/*" />
++        </intent>
++    </queries>
++
+@@ -22 +34,2 @@
+-            android:exported="true">
++            android:exported="true"
++            android:showWhenLocked="true">
+diff --git a/app/src/main/java/de/lukaspieper/gcam/PreviewRedirectActivity.kt b/app/src/main/java/de/lukaspieper/gcam/PreviewRedirectActivity.kt
+index 3733de4..0bc294f 100644
+--- a/app/src/main/java/de/lukaspieper/gcam/PreviewRedirectActivity.kt
++++ b/app/src/main/java/de/lukaspieper/gcam/PreviewRedirectActivity.kt
+@@ -3,0 +4,3 @@
++import android.content.ComponentName
++import android.content.Intent
++import android.content.pm.PackageManager
+@@ -6 +8,0 @@
+-import android.content.Intent
+@@ -13,0 +16,5 @@
++        if (isSecureReview(intent) && forwardSecureReview(intent)) {
++            finish()
++            return
++        }
++
+@@ -20,0 +28,46 @@
++
++    private fun isSecureReview(received: Intent): Boolean {
++        return received.action == ACTION_REVIEW_SECURE || received.action == ACTION_PHOTOS_REVIEW_SECURE
++    }
++
++    /**
++     * Hands a secure review (the camera's gallery button on the lock screen) to a gallery app unchanged:
++     * same action, data, clip data and extras, so the gallery can show exactly the photos of this
++     * secure session on top of the lock screen. Returns false when no gallery accepts it.
++     */
++    private fun forwardSecureReview(received: Intent): Boolean {
++        val forward = Intent(received).apply {
++            action = ACTION_REVIEW_SECURE
++            setPackage(null)
++            component = null
++            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
++        }
++
++        val candidates = packageManager
++            .queryIntentActivities(forward, PackageManager.MATCH_DEFAULT_ONLY)
++            .map { it.activityInfo }
++            .filter { it.packageName != packageName && it.exported }
++        val target = candidates.firstOrNull { it.packageName in PREFERRED_GALLERIES } ?: candidates.firstOrNull()
++
++        if (target == null) {
++            Log.w(javaClass.simpleName, "No gallery handles ACTION_REVIEW_SECURE, falling back to a plain view")
++            return false
++        }
++
++        forward.component = ComponentName(target.packageName, target.name)
++        return try {
++            startActivity(forward)
++            Log.d(javaClass.simpleName, "Forwarded secure review to ${forward.component}")
++            true
++        } catch (e: Exception) {
++            Log.w(javaClass.simpleName, "Forwarding secure review failed", e)
++            false
++        }
++    }
++
++    private companion object {
++        const val ACTION_REVIEW_SECURE = "android.provider.action.REVIEW_SECURE"
++        const val ACTION_PHOTOS_REVIEW_SECURE = "com.google.android.apps.photos.mars.api.ACTION_REVIEW_SECURE"
++
++        val PREFERRED_GALLERIES = setOf("org.losforgos.glimpse", "org.lineageos.glimpse")
++    }

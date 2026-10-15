@@ -52,9 +52,12 @@ def out(cmd, **kw):
 
 
 def patches_for(name, variant):
+    """patches/<app>/*.patch apply to every non-unmodified variant,
+    patches/<app>/<variant>/*.patch only to that variant (applied after the common ones)."""
     if variant == "unmodified":
         return []
-    return sorted((ROOT / "patches" / name).glob("*.patch"))
+    base = ROOT / "patches" / name
+    return sorted(base.glob("*.patch")) + sorted((base / variant).glob("*.patch"))
 
 
 def input_hash(app, variant):
@@ -158,8 +161,10 @@ def cmd_prepare(args):
     version_code = int(f"{date}{seq:02d}")
     version_name = f"{upstream_name}.{date}.{seq:02d}"
 
-    text = sub_once(text, r'(applicationId\s*=?\s*)"[^"]+"',
-                    lambda mm: f'{mm.group(1)}"{app["application_id"]}"', "applicationId")
+    # Apps that must keep their upstream id (the Gcam bridge impersonates Google Photos on purpose).
+    if app.get("rename_application_id", True):
+        text = sub_once(text, r'(applicationId\s*=?\s*)"[^"]+"',
+                        lambda mm: f'{mm.group(1)}"{app["application_id"]}"', "applicationId")
     text = sub_once(text, r'(versionCode\s*=?\s*)\d+',
                     lambda mm: f"{mm.group(1)}{version_code}", "versionCode")
     text = sub_once(text, r'(versionName\s*=?\s*)"[^"]*"',
@@ -174,16 +179,23 @@ def cmd_prepare(args):
         path.write_text(body.replace(rep["from"], rep["to"]))
 
     for patch in patches_for(args.app, args.variant):
-        run(["git", "apply", "--check", str(patch)], cwd=src)
-        run(["git", "apply", str(patch)], cwd=src)
+        run(["git", "apply", "--unidiff-zero", "--check", str(patch)], cwd=src)
+        run(["git", "apply", "--unidiff-zero", str(patch)], cwd=src)
         print(f"applied {patch.name}")
+
+    # Several variants of one app need distinct tags; single-variant apps keep the short form.
+    multi = len(app["variants"]) > 1
+    tag = f"{args.app}-v{version_name}" + (f"-{args.variant}" if multi else "")
+    prerelease = args.variant in app.get("prerelease_variants", ["probe"])
 
     meta = {
         "app": args.app, "variant": args.variant, "title": app["title"],
         "application_id": app["application_id"], "upstream_sha": app["sha"],
         "upstream_repo": app["repo"], "upstream_version_name": upstream_name,
         "version_code": version_code, "version_name": version_name,
-        "tag": f"{args.app}-v{version_name}",
+        "tag": tag,
+        "multi_variant": multi,
+        "prerelease": prerelease,
         "input": input_hash(app, args.variant),
         "native": bool(app.get("native", False)),
     }
@@ -219,10 +231,12 @@ def cmd_obtainium(args):
         if not app["enabled"]:
             continue
         for variant in app["variants"]:
+            if variant in app.get("prerelease_variants", ["probe"]):
+                continue  # test builds are published as pre-releases, not for tracking
             settings = {
                 "includePrereleases": False,
                 "fallbackToOlderReleases": True,
-                "filterReleaseTitlesByRegEx": f"^{app['title']} ",
+                "filterReleaseTitlesByRegEx": "^" + re.sub(r"([.^$*+?()\[\]{}|\\])", r"\\\1", app["title"]) + " ",
                 "apkFilterRegEx": f"-{variant}\\.apk$",
                 "autoApkFilterByArch": False,
             }

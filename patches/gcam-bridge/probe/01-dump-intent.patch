@@ -1,0 +1,27 @@
+diff --git a/app/src/main/java/de/lukaspieper/gcam/PreviewRedirectActivity.kt b/app/src/main/java/de/lukaspieper/gcam/PreviewRedirectActivity.kt
+index 0bc294f..54ef7ab 100644
+--- a/app/src/main/java/de/lukaspieper/gcam/PreviewRedirectActivity.kt
++++ b/app/src/main/java/de/lukaspieper/gcam/PreviewRedirectActivity.kt
+@@ -14,0 +15 @@
++        dumpIntent(intent)
+@@ -28,0 +30,20 @@
++    /** Probe build only: logs everything the camera sent, to see what a secure review contains. */
++    private fun dumpIntent(received: Intent) {
++        val tag = "LosforgosGcamProbe"
++        Log.d(tag, "action=${received.action} type=${received.type} flags=0x${Integer.toHexString(received.flags)}")
++        Log.d(tag, "data=${received.data} package=${received.`package`} component=${received.component}")
++        Log.d(tag, "callingPackage=$callingPackage referrer=$referrer")
++        received.clipData?.let { clip ->
++            Log.d(tag, "clipData items=${clip.itemCount} description=${clip.description}")
++            for (i in 0 until clip.itemCount) {
++                Log.d(tag, "clip[$i] uri=${clip.getItemAt(i).uri}")
++            }
++        }
++        received.extras?.let { extras ->
++            for (key in extras.keySet()) {
++                @Suppress("DEPRECATION")
++                Log.d(tag, "extra $key=${extras.get(key)}")
++            }
++        }
++    }
++

@@ -34,9 +34,12 @@ for meta_path in sorted(signed_dir.glob("*/meta.json")):
     )
     with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False) as nf:
         nf.write(notes)
-    subprocess.run(
-        ["gh", "release", "create", meta["tag"], str(apk), str(sums),
-         "--repo", repo, "--title", f"{meta['title']} {meta['version_name']}",
-         "--notes-file", nf.name],
-        check=True)
+    title = f"{meta['title']} {meta['version_name']}"
+    if meta.get("multi_variant"):
+        title += f" ({meta['variant']})"
+    cmd = ["gh", "release", "create", meta["tag"], str(apk), str(sums),
+           "--repo", repo, "--title", title, "--notes-file", nf.name]
+    if meta.get("prerelease"):
+        cmd.append("--prerelease")
+    subprocess.run(cmd, check=True)
     print(f"released {meta['tag']}")

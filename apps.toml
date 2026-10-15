@@ -86,6 +86,29 @@ from = 'android:targetPackage="org.lineageos.etar"'
 to = 'android:targetPackage="org.losforgos.etar"'
 
 # ---------------------------------------------------------------------------
+# Bridge between Pixel Camera (Gcam) and a third-party gallery such as Glimpse.
+# Upstream: Gcam Services Provider, "photosonly" flavor (the one GrapheneOS needs).
+# The "modified" variant forwards secure reviews (lock screen) to the gallery; the
+# "probe" variant also logs the camera's intent, to capture what Pixel Camera sends.
+# Probe builds are pre-releases and are not tracked by Obtainium.
+# ---------------------------------------------------------------------------
+
+[apps.gcam-bridge]
+title = "Gcam Bridge"
+description = "Opens the gallery from Pixel Camera, including secure review on the lock screen"
+upstream = "https://github.com/lukaspieper"
+repo = "Gcam-Services-Provider"
+branch = "main"
+sha = "5c7557b1cd0ee861b211f4f17e7088e724008389"
+# Pixel Camera looks for this exact package, so it must not be renamed.
+application_id = "com.google.android.apps.photos"
+rename_application_id = false
+gradle_task = ":app:assemblePhotosonlyRelease"
+apk_dir = "app/build/outputs/apk/photosonly/release"
+variants = ["modified", "probe"]
+enabled = true
+
+# ---------------------------------------------------------------------------
 # Later phases: listed so the plan is visible, but not built yet.
 # ---------------------------------------------------------------------------
 # calculator (ExactCalculator), deskclock, keyboard (LatinIME): Gradle, need rename + checks.

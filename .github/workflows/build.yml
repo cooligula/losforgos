@@ -121,7 +121,7 @@ jobs:
           echo "$KEYSTORE_B64" | base64 -d > "$KEYSTORE_PATH"
           trap 'rm -f "$KEYSTORE_PATH"' EXIT
           for dir in unsigned/*/; do
-            app_dir="signed/$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['app'])" "$dir/meta.json")"
+            app_dir="signed/$(basename "$dir")"   # artifact name is unique per app and variant
             mkdir -p "$app_dir"
             meta="$dir/meta.json"
             unsigned="$(ls "$dir"/*-unsigned.apk)"

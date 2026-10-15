@@ -55,6 +55,14 @@
       "name": "Etar",
       "preferredApkIndex": 0,
       "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Etar \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    },
+    {
+      "id": "com.google.android.apps.photos",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Gcam Bridge (modified)",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Gcam Bridge \", \"apkFilterRegEx\": \"-modified\\\\.apk$\", \"autoApkFilterByArch\": false}"
     }
   ]
 }
