@@ -50,7 +50,7 @@ def resource_dirs():
     return re.findall(r'"([^"]+)"', block)
 
 def top_level_elements(path):
-    """(identity, start, end) of every resource a values file defines, as byte offsets.
+    """(identity, start, end, replacement) of every resource a values file defines, as byte offsets.
 
     These are the direct children of <resources> that have a name, and the <attr> definitions
     (with a format or children) inside a <declare-styleable>, which are global attrs as well.
@@ -92,11 +92,13 @@ def top_level_elements(path):
         depth = len(stack)
         if depth == 2 and state["ident"]:
             stop = state["empty_end"] or data.find(b">", parser.CurrentByteIndex) + 1
-            found.append((state["ident"], state["start"], stop))
+            found.append((state["ident"], state["start"], stop, None))
         elif depth == 3 and stack[1] == "declare-styleable" and tag == "attr" \
                 and state["attr_name"] and state["attr_defined"]:
             stop = state["attr_empty_end"] or data.find(b">", parser.CurrentByteIndex) + 1
-            found.append((("attr", "", state["attr_name"]), state["attr_start"], stop))
+            # Keep a bare reference, so that the attr stays a member of this styleable.
+            reference = ('<attr name="%s"/>' % state["attr_name"]).encode()
+            found.append((("attr", "", state["attr_name"]), state["attr_start"], stop, reference))
         if depth == 3:
             state["attr_name"] = None
             state["attr_defined"] = False
@@ -121,12 +123,12 @@ def main():
             for f in sorted(p for p in qdir.iterdir() if p.is_file()):
                 if qdir.name.startswith("values") and f.suffix == ".xml":
                     _, elems = top_level_elements(f)
-                    for ident, s, e in elems:
+                    for ident, s, e, repl in elems:
                         key = (qdir.name, ident)
                         if key in owner:
-                            pf, ps, pe = owner[key]
-                            removals.setdefault(pf, []).append((ps, pe))
-                        owner[key] = (f, s, e)
+                            pf, ps, pe, prepl = owner[key]
+                            removals.setdefault(pf, []).append((ps, pe, prepl))
+                        owner[key] = (f, s, e, repl)
                 else:
                     key = (qdir.name, f.name)
                     if key in files_seen:
@@ -134,13 +136,14 @@ def main():
                     files_seen[key] = f
     for f, spans in removals.items():
         data = f.read_bytes()
-        for s, e in sorted(set(spans), reverse=True):
-            # Also drop the whitespace that followed the element.
-            while e < len(data) and data[e:e + 1] in (b" ", b"\t"):
-                e += 1
-            if data[e:e + 1] == b"\n":
-                e += 1
-            data = data[:s] + data[e:]
+        for s, e, repl in sorted(set(spans), key=lambda x: x[0], reverse=True):
+            if repl is None:
+                # Also drop the whitespace that followed the element.
+                while e < len(data) and data[e:e + 1] in (b" ", b"\t"):
+                    e += 1
+                if data[e:e + 1] == b"\n":
+                    e += 1
+            data = data[:s] + (repl or b"") + data[e:]
         f.write_bytes(data)
     for f in deleted_files:
         f.unlink()

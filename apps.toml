@@ -324,6 +324,19 @@ file = "AndroidManifest.xml"
 from = 'android:process="com.android.incallui"'
 to = 'android:process=":incallui"'
 
+# Newer platform APIs than the SDK the port compiles against. The notification loses its
+# "promoted ongoing" request, and the voicemail IPv4 wait checks the link addresses instead of
+# asking the platform whether 8.8.8.8 is reachable.
+[[apps.dialer.replace]]
+file = "java/com/android/incallui/StatusBarNotifier.java"
+from = "builder.setRequestPromotedOngoing(true);"
+to = "// builder.setRequestPromotedOngoing(true): needs a newer SDK."
+
+[[apps.dialer.replace]]
+file = "java/com/android/voicemail/impl/sync/VvmNetworkRequestCallback.java"
+from = '(lp.isReachable(InetAddresses.parseNumericAddress("8.8.8.8")));'
+to = "lp.getLinkAddresses().stream().anyMatch(a -> a.getAddress() instanceof java.net.Inet4Address);"
+
 # ---------------------------------------------------------------------------
 # Later phases: listed so the plan is visible, but not built yet.
 # ---------------------------------------------------------------------------
