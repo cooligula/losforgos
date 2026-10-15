@@ -179,11 +179,18 @@ def cmd_prepare(args):
     build_file.write_text(text)
 
     for rep in app["replace"]:
-        path = src / rep["file"]
-        body = path.read_text()
-        if rep["from"] not in body:
+        # `file` may be a glob (for example res/**/*.xml); then every match containing `from` changes.
+        if any(c in rep["file"] for c in "*?["):
+            paths = [p for p in sorted(src.glob(rep["file"])) if p.is_file()]
+            paths = [p for p in paths if rep["from"] in p.read_text()]
+        else:
+            paths = [src / rep["file"]]
+            if rep["from"] not in paths[0].read_text():
+                paths = []
+        if not paths:
             sys.exit(f"prepare: '{rep['from']}' not found in {rep['file']}")
-        path.write_text(body.replace(rep["from"], rep["to"]))
+        for path in paths:
+            path.write_text(path.read_text().replace(rep["from"], rep["to"]))
 
     for patch in patches_for(args.app, args.variant):
         run(["git", "apply", "--unidiff-zero", "--check", str(patch)], cwd=src)
@@ -240,6 +247,8 @@ def cmd_obtainium(args):
         for variant in app["variants"]:
             if variant in app.get("prerelease_variants", ["probe"]):
                 continue  # test builds are published as pre-releases, not for tracking
+            if app.get("obtainium_variant", variant) != variant:
+                continue  # variants that share one application id: track only this one
             settings = {
                 "includePrereleases": False,
                 "fallbackToOlderReleases": True,

@@ -4,9 +4,9 @@
       "id": "org.losforgos.glimpse",
       "url": "https://github.com/cooligula/losforgos",
       "author": "cooligula",
-      "name": "Glimpse",
+      "name": "Glimpse (modified)",
       "preferredApkIndex": 0,
-      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Glimpse \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Glimpse \", \"apkFilterRegEx\": \"-modified\\\\.apk$\", \"autoApkFilterByArch\": false}"
     },
     {
       "id": "org.losforgos.aperture",

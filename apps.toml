@@ -17,6 +17,10 @@ description = "Gallery"
 repo = "android_packages_apps_Glimpse"
 sha = "8caac09fe1fe0cadb2fa828ac5755c8fb9481eb5"
 application_id = "org.losforgos.glimpse"
+# "modified" also shows every photo of a Pixel Camera lock screen session, not only the last one.
+# Both variants share the application id, so Obtainium follows only the modified one.
+variants = ["modified", "unmodified"]
+obtainium_variant = "modified"
 enabled = true
 
 [apps.aperture]
@@ -191,6 +195,12 @@ to = ">org.losforgos.keyboard.dictionarypack<"
 file = "java/AndroidManifest.xml"
 from = "com.android.inputmethod.dictionarypack.aosp."
 to = "org.losforgos.keyboard.dictionarypack."
+
+# Resource XML names its attribute namespace after the application id; res-auto does not.
+[[apps.keyboard.replace]]
+file = "java/res/**/*.xml"
+from = "http://schemas.android.com/apk/res/com.android.inputmethod.latin"
+to = "http://schemas.android.com/apk/res-auto"
 
 # Native build: a current NDK (16 KB pages by default), arm64 only, and no -Werror so that
 # newer compiler warnings do not break the build. jcenter() is gone.

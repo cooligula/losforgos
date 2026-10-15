@@ -1,0 +1,53 @@
+diff --git a/app/src/main/java/org/lineageos/glimpse/viewmodels/IntentsViewModel.kt b/app/src/main/java/org/lineageos/glimpse/viewmodels/IntentsViewModel.kt
+index b529e14..03cab4e 100644
+--- a/app/src/main/java/org/lineageos/glimpse/viewmodels/IntentsViewModel.kt
++++ b/app/src/main/java/org/lineageos/glimpse/viewmodels/IntentsViewModel.kt
+@@ -8,0 +9 @@
++import android.content.ContentUris
+@@ -84,0 +86 @@
++         * @param initialMedia The [Media] from which we should start
+@@ -87,0 +90 @@
++            val initialMedia: Media? = null,
+@@ -206,3 +209,9 @@
+-                MediaStore.ACTION_REVIEW_SECURE -> ParsedIntent.SecureReviewIntent(
+-                    mediaItems.filterIsInstance<Media>(),
+-                )
++                MediaStore.ACTION_REVIEW_SECURE -> {
++                    // Pixel Camera passes only the last photo as data, and lists every photo of
++                    // the secure session in an extra. Show all of them, starting at the last one.
++                    val shown = mediaItems.filterIsInstance<Media>()
++                    ParsedIntent.SecureReviewIntent(
++                        (secureSessionMedias(intent) + shown).distinctBy { it.uri },
++                        shown.firstOrNull(),
++                    )
++                }
+@@ -271,0 +281,19 @@
++    /**
++     * Media of the camera's secure session, from the ids the camera puts in the intent.
++     * Oldest first. Ids that cannot be read are skipped.
++     */
++    private suspend fun secureSessionMedias(intent: Intent) = buildList<Media> {
++        val ids = intent.extras?.getLongArray(EXTRA_SECURE_MODE_IDS) ?: return@buildList
++        ids.sorted().forEach { id ->
++            listOf(
++                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
++                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
++            ).firstNotNullOfOrNull { base ->
++                when (val status = mediaRepository.media(ContentUris.withAppendedId(base, id)).first()) {
++                    is RequestStatus.Success -> status.data
++                    else -> null
++                }
++            }?.let { add(it) }
++        }
++    }
++
+@@ -461,0 +490,3 @@
++
++        private const val EXTRA_SECURE_MODE_IDS =
++            "com.google.android.apps.photos.api.secure_mode_ids"
+diff --git a/app/src/main/java/org/lineageos/glimpse/viewmodels/LocalPlayerViewModel.kt b/app/src/main/java/org/lineageos/glimpse/viewmodels/LocalPlayerViewModel.kt
+index 3441779..5dc579a 100644
+--- a/app/src/main/java/org/lineageos/glimpse/viewmodels/LocalPlayerViewModel.kt
++++ b/app/src/main/java/org/lineageos/glimpse/viewmodels/LocalPlayerViewModel.kt
+@@ -94,0 +95 @@
++                is IntentsViewModel.ParsedIntent.SecureReviewIntent -> it.initialMedia
