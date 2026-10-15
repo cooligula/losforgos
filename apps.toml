@@ -822,6 +822,23 @@ to = '''    private final androidx.activity.result.ActivityResultLauncher<androi
         final ArrayList<ParticipantData> participants =
 '''
 
+# A conversation that still cannot be created (the prompt above covers the missing default role) was
+# only logged; say so.
+[[apps.messaging.replace]]
+file = "src/com/android/messaging/ui/contact/ContactPickerFragment.java"
+from = '''        LogUtil.e(LogUtil.BUGLE_TAG, "onGetOrCreateConversationFailed");
+        mMonitor = null;'''
+to = '''        LogUtil.e(LogUtil.BUGLE_TAG, "onGetOrCreateConversationFailed");
+        mMonitor = null;
+        UiUtils.showToast(R.string.losforgos_conversation_creation_failed);'''
+
+[[apps.messaging.replace]]
+file = "res/values/strings.xml"
+from = '''</resources>'''
+to = '''
+    <string name="losforgos_conversation_creation_failed">Couldn\'t start the conversation. Check the number, and that Messaging is the default SMS app.</string>
+</resources>'''
+
 # ---------------------------------------------------------------------------
 # Later phases: listed so the plan is visible, but not built yet.
 # ---------------------------------------------------------------------------
