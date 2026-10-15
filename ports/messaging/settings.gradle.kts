@@ -24,3 +24,9 @@ project(":colorpicker").projectDir = file("libs/colorpicker")
 project(":chips").projectDir = file("libs/chips")
 project(":photoviewer").projectDir = file("libs/photoviewer")
 project(":vcard").projectDir = file("libs/vcard")
+
+// The fetched AOSP libraries ship their own legacy build.gradle (Groovy, `compile` configuration, no
+// compileSdk), which Gradle would pick over the build.gradle.kts of this port. Name the file.
+for (name in listOf("colorpicker", "chips", "photoviewer", "vcard")) {
+    project(":$name").buildFileName = "build.gradle.kts"
+}
