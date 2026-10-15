@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""Soong generates an R class in every package listed in --extra-packages; Gradle makes one.
+"""Source changes that the Gradle build of the Dialer needs. Run in the upstream tree.
 
-Run in the upstream tree. Files outside com.android.dialer that use R without importing one get
-`import com.android.dialer.R;`, and qualified references to the per-package classes point at it.
+1. Soong generates an R class in every package listed in --extra-packages; Gradle makes one.
+   Files outside com.android.dialer that use R without importing one get
+   `import com.android.dialer.R;`, and qualified references to the per-package classes point at it.
+2. The .proto files import each other by their path from the repository root
+   (java/com/android/...), so they are copied to src/main/proto/ with that path kept, which is
+   where the protobuf plugin looks.
 """
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -25,5 +30,12 @@ for path in sorted(Path("java").rglob("*.java")):
     if new != text:
         path.write_text(new)
         changed += 1
-print(f"fix_r: updated {changed} files")
+print(f"prepare: updated {changed} files")
+
+protos = sorted(Path("java").rglob("*.proto"))
+for proto in protos:
+    dest = Path("src/main/proto") / proto
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(proto, dest)
+print(f"prepare: staged {len(protos)} proto files")
 sys.exit(0)

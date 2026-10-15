@@ -40,7 +40,6 @@ android {
         getByName("main") {
             manifest.srcFile("AndroidManifest.xml")
             java.setSrcDirs(listOf("java"))
-            java.filter.exclude("**/rootcomponentgenerator/*.java")
             aidl.setSrcDirs(listOf("java"))
             res.setSrcDirs(resDirs)
             assets.setSrcDirs(listOf("assets"))
@@ -89,6 +88,8 @@ protobuf {
 
 // Collect every error instead of stopping at the first hundred.
 tasks.withType<JavaCompile>().configureEach {
+    // The annotation processor sources live in :rootprocessor, not in the app.
+    exclude("**/rootcomponentgenerator/*.java")
     options.compilerArgs.addAll(listOf("-Xmaxerrs", "5000", "-Xmaxwarns", "5000"))
 }
 
