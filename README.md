@@ -64,9 +64,10 @@ Verify a download: the APK's signing certificate SHA-256 is in the repository va
 | Clock | android_packages_apps_DeskClock | new, first build pending |
 | Keyboard | android_packages_inputmethods_LatinIME | new, first build pending, has native code |
 | Dialer (phone) | android_packages_apps_Dialer | Gradle port, tested on a device, see [Dialer notes](#dialer-notes) |
+| Messaging (SMS and MMS) | android_packages_apps_Messaging | experimental Gradle port, not tested yet, pre-release only, has native code, see [Messaging notes](#messaging-notes) |
 | Gcam Bridge | Gcam-Services-Provider (photosonly) | modified: forwards secure review to Glimpse; `probe` variant is a pre-release for debugging |
 
-Planned: Messaging and Contacts (these need a Gradle port). See [docs/plan.md](docs/plan.md).
+Planned: Contacts (needs a Gradle port). See [docs/plan.md](docs/plan.md).
 
 ## Dialer notes
 
@@ -80,6 +81,20 @@ the default phone app (Settings, Apps, Default apps, Phone app) to use it.
 - The search box and smart dial are not covered by prefix matching yet.
 - The live-update chip for ongoing calls needs Android 16.
 - Settings, Sounds and vibration needs "Modify system settings"; the app opens that page for you.
+
+## Messaging notes
+
+Experimental: published as a pre-release only, so Obtainium does not offer it, and built only when
+asked for by name (`only: messaging`). It is installed as `org.losforgos.messaging`, so it can sit
+next to a system Messaging; set it as the default SMS app (Settings, Apps, Default apps, SMS app)
+to use it.
+
+- The helper libraries upstream gets from other Android projects (colorpicker, chips, photoviewer,
+  vcard) and the giflib behind the GIF resizer are fetched at the AOSP tag LineageOS 24.0 uses
+  (`deps` in `apps.toml`) and built as Gradle modules and with CMake.
+- Native code: only `libgiftranscode` (shrinks animated GIFs to fit an MMS), plain malloc, no custom
+  allocator.
+- Code shrinking is off while the port is experimental.
 
 ## How it works
 

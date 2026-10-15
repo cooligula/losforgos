@@ -152,6 +152,19 @@ def cmd_fetch(args):
     run(["git", "fetch", "-q", "--depth", "1", "origin", app["sha"]], cwd=dest)
     run(["git", "checkout", "-q", "FETCH_HEAD"], cwd=dest)
     print(f"fetched {url} at {app['sha']}")
+    # Extra repositories the app needs next to its own tree (libraries that upstream builds from
+    # other projects of the Android source tree). Each has a name, url, sha and a directory
+    # relative to the app, and is pinned like the app itself.
+    for dep in app.get("deps", []):
+        ddest = dest / dep["dest"]
+        if ddest.exists():
+            sys.exit(f"{ddest} already exists")
+        ddest.mkdir(parents=True)
+        run(["git", "init", "-q"], cwd=ddest)
+        run(["git", "remote", "add", "origin", dep["url"]], cwd=ddest)
+        run(["git", "fetch", "-q", "--depth", "1", "origin", dep["sha"]], cwd=ddest)
+        run(["git", "checkout", "-q", "FETCH_HEAD"], cwd=ddest)
+        print(f"fetched {dep['name']}: {dep['url']} at {dep['sha']}")
 
 
 def sub_once(text, pattern, repl, what):
