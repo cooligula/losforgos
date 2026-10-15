@@ -51,12 +51,24 @@ port). See [docs/plan.md](docs/plan.md).
 
 ## One-time setup
 
-1. Settings, Actions, General: allow GitHub Actions to create pull requests.
-2. Settings, Environments: create an environment named `release`, restricted to the `main` branch.
-3. Generate the key on your own machine: `scripts/gen-keystore.sh ~/losforgos-keystore OWNER/REPO`
-   (offers to `brew install` a JDK, and uploads the secrets if `gh` is logged in; otherwise run the `gh secret set`
-   commands it prints). Back the keystore up; losing it forces everyone to reinstall.
-4. Run the `build` workflow manually with "release" ticked to publish the first versions.
+On your Mac (Linux works too), in a clone of this repository:
+
+```sh
+git pull
+scripts/setup-signing.sh
+```
+
+It creates the signing key (openssl only, no Java), installs and logs in the GitHub CLI if
+needed, creates the `release` environment limited to `main`, stores the signing secrets and the
+`CERT_SHA256` variable, and allows Actions to open pull requests. Then back up
+`~/.losforgos-keystore` and its password; if they are lost, every installed app has to be
+uninstalled before an update signed by a new key will install.
+
+Publish the first releases:
+
+```sh
+gh workflow run build.yml --ref main -f release=true -f force=true
+```
 
 ## Licenses
 
