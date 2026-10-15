@@ -838,8 +838,7 @@ to = '''
 </resources>'''
 
 # Contacts: the contacts app, usable as the default contacts handler. ports/contacts holds the Gradle
-# build. Experimental until it has been tried on a phone: published as a pre-release, left out of
-# Obtainium, and only built when asked for by name.
+# build. Tried on a phone.
 [apps.contacts]
 title = "Contacts"
 description = "Contacts app"
@@ -853,7 +852,6 @@ gradle_version = "8.14.3"
 overlay = "contacts"
 post_scripts = ["ports/contacts/prepare.py"]
 base_version = "1.0"
-experimental = true
 enabled = true
 
 # The libraries that Android.bp lists as static_libs and that are separate projects of the Android

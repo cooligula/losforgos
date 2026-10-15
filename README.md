@@ -27,6 +27,7 @@ Badge from the [Obtainium](https://github.com/ImranR98/Obtainium) repository.
 - [Keyboard](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%257B%2522id%2522:%2522org.losforgos.keyboard%2522,%2522url%2522:%2522https://github.com/cooligula/losforgos%2522,%2522author%2522:%2522cooligula%2522,%2522name%2522:%2522Keyboard%2522,%2522preferredApkIndex%2522:0,%2522additionalSettings%2522:%2522%257B%255C%2522includePrereleases%255C%2522:%2520false,%2520%255C%2522fallbackToOlderReleases%255C%2522:%2520true,%2520%255C%2522filterReleaseTitlesByRegEx%255C%2522:%2520%255C%2522%255EKeyboard%2520%255C%2522,%2520%255C%2522apkFilterRegEx%255C%2522:%2520%255C%2522-unmodified%255C%255C%255C%255C.apk%2524%255C%2522,%2520%255C%2522autoApkFilterByArch%255C%2522:%2520false%257D%2522%257D)
 - [Dialer](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%257B%2522id%2522:%2522org.losforgos.dialer%2522,%2522url%2522:%2522https://github.com/cooligula/losforgos%2522,%2522author%2522:%2522cooligula%2522,%2522name%2522:%2522Dialer%2522,%2522preferredApkIndex%2522:0,%2522additionalSettings%2522:%2522%257B%255C%2522includePrereleases%255C%2522:%2520false,%2520%255C%2522fallbackToOlderReleases%255C%2522:%2520true,%2520%255C%2522filterReleaseTitlesByRegEx%255C%2522:%2520%255C%2522%255EDialer%2520%255C%2522,%2520%255C%2522apkFilterRegEx%255C%2522:%2520%255C%2522-unmodified%255C%255C%255C%255C.apk%2524%255C%2522,%2520%255C%2522autoApkFilterByArch%255C%2522:%2520false%257D%2522%257D)
 - [Messaging](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%257B%2522id%2522:%2522org.losforgos.messaging%2522,%2522url%2522:%2522https://github.com/cooligula/losforgos%2522,%2522author%2522:%2522cooligula%2522,%2522name%2522:%2522Messaging%2522,%2522preferredApkIndex%2522:0,%2522additionalSettings%2522:%2522%257B%255C%2522includePrereleases%255C%2522:%2520false,%2520%255C%2522fallbackToOlderReleases%255C%2522:%2520true,%2520%255C%2522filterReleaseTitlesByRegEx%255C%2522:%2520%255C%2522%255EMessaging%2520%255C%2522,%2520%255C%2522apkFilterRegEx%255C%2522:%2520%255C%2522-unmodified%255C%255C%255C%255C.apk%2524%255C%2522,%2520%255C%2522autoApkFilterByArch%255C%2522:%2520false%257D%2522%257D)
+- [Contacts](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%257B%2522id%2522:%2522org.losforgos.contacts%2522,%2522url%2522:%2522https://github.com/cooligula/losforgos%2522,%2522author%2522:%2522cooligula%2522,%2522name%2522:%2522Contacts%2522,%2522preferredApkIndex%2522:0,%2522additionalSettings%2522:%2522%257B%255C%2522includePrereleases%255C%2522:%2520false,%2520%255C%2522fallbackToOlderReleases%255C%2522:%2520true,%2520%255C%2522filterReleaseTitlesByRegEx%255C%2522:%2520%255C%2522%255EContacts%2520%255C%2522,%2520%255C%2522apkFilterRegEx%255C%2522:%2520%255C%2522-unmodified%255C%255C%255C%255C.apk%2524%255C%2522,%2520%255C%2522autoApkFilterByArch%255C%2522:%2520false%257D%2522%257D)
 
 By hand: in Obtainium tap Add app, enter `https://github.com/cooligula/losforgos`, and set the release title
 and APK filters shown under [Install and update](#install-and-update-with-obtainium); or import
@@ -66,7 +67,7 @@ Verify a download: the APK's signing certificate SHA-256 is in the repository va
 | Keyboard | android_packages_inputmethods_LatinIME | new, first build pending, has native code |
 | Dialer (phone) | android_packages_apps_Dialer | Gradle port, tested on a device, see [Dialer notes](#dialer-notes) |
 | Messaging (SMS and MMS) | android_packages_apps_Messaging | Gradle port, tested on a device, has native code, see [Messaging notes](#messaging-notes) |
-| Contacts | android_packages_apps_Contacts | experimental Gradle port, not tested yet, pre-release only, see [Contacts notes](#contacts-notes) |
+| Contacts | android_packages_apps_Contacts | Gradle port, tested on a device, see [Contacts notes](#contacts-notes) |
 | Gcam Bridge | Gcam-Services-Provider (photosonly) | modified: forwards secure review to Glimpse; `probe` variant is a pre-release for debugging |
 
 See [docs/plan.md](docs/plan.md) for the plan.
@@ -101,16 +102,15 @@ start a conversation, and it asks for the role when you try.
 
 ## Contacts notes
 
-Experimental: published as a pre-release only, so Obtainium does not offer it, and built only when
-asked for by name (`only: contacts`). It is installed as `org.losforgos.contacts`, so it can sit next
-to a system Contacts app and talks to the system contacts provider like any other contacts app.
+Installed as `org.losforgos.contacts`, so it can sit next to a system Contacts app; it talks to the
+system contacts provider like any other contacts app.
 
 - The vcard library and the few PhoneCommon and frameworks/ex classes upstream gets from other Android
   projects are fetched at the AOSP tag LineageOS 24.0 uses (`deps` in `apps.toml`).
 - The privileged permissions of the manifest (profile, account management and so on) are ordinary
-  requests here: a normal app does not receive them. The code paths that need them have not been
-  audited yet; that is part of the first test.
-- Code shrinking is off while the port is experimental.
+  requests here: a normal app does not receive them. Setting the default account for new contacts
+  needs one of them, so that choice is probably not saved.
+- Code shrinking is off.
 
 ## How it works
 

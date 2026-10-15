@@ -103,6 +103,14 @@
       "name": "Messaging",
       "preferredApkIndex": 0,
       "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Messaging \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    },
+    {
+      "id": "org.losforgos.contacts",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Contacts",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Contacts \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
     }
   ]
 }
