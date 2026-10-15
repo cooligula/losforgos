@@ -71,6 +71,8 @@ description = "Calendar"
 repo = "android_packages_apps_Etar"
 sha = "8173ec802ed046d1670ec03962e686e393a85335"
 application_id = "org.losforgos.etar"
+# Lint vital crashes on JDK 17 (NoSuchMethodError List.removeLast), it needs JDK 21.
+java = 21
 enabled = true
 # AGP 9 rejects package= in the manifest (namespace is already in build.gradle.kts).
 [[apps.etar.replace]]
