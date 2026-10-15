@@ -788,6 +788,40 @@ file = "src/com/android/messaging/widget/BaseWidgetProvider.java"
 from = "registerReceiver(this, new IntentFilter(getAction()));"
 to = "registerReceiver(this, new IntentFilter(getAction()), Context.RECEIVER_NOT_EXPORTED);"
 
+# Starting a conversation creates a thread in the SMS provider, which only the default SMS app may
+# do; without it the picker silently stays on the contact list. Ask for the role first, and go on
+# with the conversation once it has been granted.
+[[apps.messaging.replace]]
+file = "src/com/android/messaging/ui/contact/ContactPickerFragment.java"
+from = '''    private void maybeGetOrCreateConversation() {
+        final ArrayList<ParticipantData> participants =
+'''
+to = '''    private final androidx.activity.result.ActivityResultLauncher<android.content.Intent>
+            mDefaultSmsAppLauncher = registerForActivityResult(
+                    new androidx.activity.result.contract.ActivityResultContracts
+                            .StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == Activity.RESULT_OK) {
+                            maybeGetOrCreateConversation();
+                        }
+                    });
+
+    private void maybeGetOrCreateConversation() {
+        if (!PhoneUtils.getDefault().isDefaultSmsApp()) {
+            final Activity activity = requireActivity();
+            UiUtils.showSnackBarWithCustomAction(activity, mRootView,
+                    getString(R.string.requires_default_sms_app),
+                    com.android.messaging.ui.SnackBar.Action.createCustomAction(
+                            () -> mDefaultSmsAppLauncher.launch(
+                                    com.android.messaging.ui.UIIntents.get()
+                                            .getChangeDefaultSmsAppIntent(activity)),
+                            getString(R.string.requires_default_sms_change_button)),
+                    null /* interactions */, null /* placement */);
+            return;
+        }
+        final ArrayList<ParticipantData> participants =
+'''
+
 # ---------------------------------------------------------------------------
 # Later phases: listed so the plan is visible, but not built yet.
 # ---------------------------------------------------------------------------
