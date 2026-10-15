@@ -338,8 +338,7 @@ to = "lp.getLinkAddresses().stream().anyMatch(a -> a.getAddress() instanceof jav
 [[apps.dialer.replace]]
 file = "java/com/android/incallui/StatusBarNotifier.java"
 from = "builder.setRequestPromotedOngoing(true);"
-to = """builder.setColorized(true);
-        requestPromotedOngoing(builder);"""
+to = """requestPromotedOngoing(builder);"""
 
 [[apps.dialer.replace]]
 file = "java/com/android/incallui/StatusBarNotifier.java"
