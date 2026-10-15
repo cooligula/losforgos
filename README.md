@@ -26,6 +26,7 @@ Badge from the [Obtainium](https://github.com/ImranR98/Obtainium) repository.
 - [Clock](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%257B%2522id%2522:%2522org.losforgos.deskclock%2522,%2522url%2522:%2522https://github.com/cooligula/losforgos%2522,%2522author%2522:%2522cooligula%2522,%2522name%2522:%2522Clock%2522,%2522preferredApkIndex%2522:0,%2522additionalSettings%2522:%2522%257B%255C%2522includePrereleases%255C%2522:%2520false,%2520%255C%2522fallbackToOlderReleases%255C%2522:%2520true,%2520%255C%2522filterReleaseTitlesByRegEx%255C%2522:%2520%255C%2522%255EClock%2520%255C%2522,%2520%255C%2522apkFilterRegEx%255C%2522:%2520%255C%2522-unmodified%255C%255C%255C%255C.apk%2524%255C%2522,%2520%255C%2522autoApkFilterByArch%255C%2522:%2520false%257D%2522%257D)
 - [Keyboard](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%257B%2522id%2522:%2522org.losforgos.keyboard%2522,%2522url%2522:%2522https://github.com/cooligula/losforgos%2522,%2522author%2522:%2522cooligula%2522,%2522name%2522:%2522Keyboard%2522,%2522preferredApkIndex%2522:0,%2522additionalSettings%2522:%2522%257B%255C%2522includePrereleases%255C%2522:%2520false,%2520%255C%2522fallbackToOlderReleases%255C%2522:%2520true,%2520%255C%2522filterReleaseTitlesByRegEx%255C%2522:%2520%255C%2522%255EKeyboard%2520%255C%2522,%2520%255C%2522apkFilterRegEx%255C%2522:%2520%255C%2522-unmodified%255C%255C%255C%255C.apk%2524%255C%2522,%2520%255C%2522autoApkFilterByArch%255C%2522:%2520false%257D%2522%257D)
 - [Dialer](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%257B%2522id%2522:%2522org.losforgos.dialer%2522,%2522url%2522:%2522https://github.com/cooligula/losforgos%2522,%2522author%2522:%2522cooligula%2522,%2522name%2522:%2522Dialer%2522,%2522preferredApkIndex%2522:0,%2522additionalSettings%2522:%2522%257B%255C%2522includePrereleases%255C%2522:%2520false,%2520%255C%2522fallbackToOlderReleases%255C%2522:%2520true,%2520%255C%2522filterReleaseTitlesByRegEx%255C%2522:%2520%255C%2522%255EDialer%2520%255C%2522,%2520%255C%2522apkFilterRegEx%255C%2522:%2520%255C%2522-unmodified%255C%255C%255C%255C.apk%2524%255C%2522,%2520%255C%2522autoApkFilterByArch%255C%2522:%2520false%257D%2522%257D)
+- [Messaging](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%257B%2522id%2522:%2522org.losforgos.messaging%2522,%2522url%2522:%2522https://github.com/cooligula/losforgos%2522,%2522author%2522:%2522cooligula%2522,%2522name%2522:%2522Messaging%2522,%2522preferredApkIndex%2522:0,%2522additionalSettings%2522:%2522%257B%255C%2522includePrereleases%255C%2522:%2520false,%2520%255C%2522fallbackToOlderReleases%255C%2522:%2520true,%2520%255C%2522filterReleaseTitlesByRegEx%255C%2522:%2520%255C%2522%255EMessaging%2520%255C%2522,%2520%255C%2522apkFilterRegEx%255C%2522:%2520%255C%2522-unmodified%255C%255C%255C%255C.apk%2524%255C%2522,%2520%255C%2522autoApkFilterByArch%255C%2522:%2520false%257D%2522%257D)
 
 By hand: in Obtainium tap Add app, enter `https://github.com/cooligula/losforgos`, and set the release title
 and APK filters shown under [Install and update](#install-and-update-with-obtainium); or import
@@ -64,7 +65,7 @@ Verify a download: the APK's signing certificate SHA-256 is in the repository va
 | Clock | android_packages_apps_DeskClock | new, first build pending |
 | Keyboard | android_packages_inputmethods_LatinIME | new, first build pending, has native code |
 | Dialer (phone) | android_packages_apps_Dialer | Gradle port, tested on a device, see [Dialer notes](#dialer-notes) |
-| Messaging (SMS and MMS) | android_packages_apps_Messaging | experimental Gradle port, not tested yet, pre-release only, has native code, see [Messaging notes](#messaging-notes) |
+| Messaging (SMS and MMS) | android_packages_apps_Messaging | Gradle port, tested on a device, has native code, see [Messaging notes](#messaging-notes) |
 | Gcam Bridge | Gcam-Services-Provider (photosonly) | modified: forwards secure review to Glimpse; `probe` variant is a pre-release for debugging |
 
 Planned: Contacts (needs a Gradle port). See [docs/plan.md](docs/plan.md).
@@ -84,17 +85,18 @@ the default phone app (Settings, Apps, Default apps, Phone app) to use it.
 
 ## Messaging notes
 
-Experimental: published as a pre-release only, so Obtainium does not offer it, and built only when
-asked for by name (`only: messaging`). It is installed as `org.losforgos.messaging`, so it can sit
-next to a system Messaging; set it as the default SMS app (Settings, Apps, Default apps, SMS app)
-to use it.
+It is installed as `org.losforgos.messaging`, so it can sit next to a system Messaging. Set it as
+the default SMS app (Settings, Apps, Default apps, SMS app) to use it; without that role it cannot
+start a conversation, and it asks for the role when you try.
 
 - The helper libraries upstream gets from other Android projects (colorpicker, chips, photoviewer,
   vcard) and the giflib behind the GIF resizer are fetched at the AOSP tag LineageOS 24.0 uses
   (`deps` in `apps.toml`) and built as Gradle modules and with CMake.
 - Native code: only `libgiftranscode` (shrinks animated GIFs to fit an MMS), plain malloc, no custom
   allocator.
-- Code shrinking is off while the port is experimental.
+- Code shrinking is off (classes loaded by name would be removed).
+- Tested on a device as the default SMS app: sending and receiving SMS. MMS and the GIF resizing are
+  built the same way but have not been exercised yet.
 
 ## How it works
 

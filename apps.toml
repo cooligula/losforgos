@@ -697,8 +697,7 @@ to = '''  private static void removeIfPresent(PreferenceScreen screen, Preferenc
 '''
 
 # Messaging: SMS/MMS app, usable as the default messaging app. ports/messaging holds the Gradle
-# build. Experimental until it has been tried on a phone: published as a pre-release, left out of
-# Obtainium, and only built when asked for by name.
+# build. Tried on a phone as the default SMS app.
 [apps.messaging]
 title = "Messaging"
 description = "SMS and MMS app"
@@ -713,7 +712,6 @@ overlay = "messaging"
 post_scripts = ["ports/messaging/prepare.py"]
 base_version = "1.0"
 native = true   # libgiftranscode (GIF resizing for MMS); needs a memory tagging test on a Pixel 8 or newer
-experimental = true
 enabled = true
 
 # The libraries that Android.bp lists as static_libs, and the giflib that libgiftranscode links, are
