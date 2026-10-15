@@ -48,8 +48,10 @@ android {
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // Off while the port is experimental: the shrinker can remove classes that the Dialer
+            // loads by name (Dagger, protobuf, providers), which would crash at runtime.
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android.txt"),
                 "java/com/android/dialer/common/proguard.flags",
