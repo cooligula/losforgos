@@ -9,7 +9,17 @@ meta="$src/losforgos-meta.json"
 task="$(python3 -c "import sys,tomllib;d=tomllib.load(open('$root/apps.toml','rb'));print(d['apps']['$app'].get('gradle_task',':app:assembleRelease'))")"
 apkdir="$(python3 -c "import sys,tomllib;d=tomllib.load(open('$root/apps.toml','rb'));print(d['apps']['$app'].get('apk_dir','app/build/outputs/apk/release'))")"
 
-( cd "$src" && chmod +x gradlew && ./gradlew --no-daemon --stacktrace "$task" )
+gradle_version="$(python3 -c "import sys,tomllib;d=tomllib.load(open('$root/apps.toml','rb'));print(d['apps']['$app'].get('gradle_version',''))")"
+# Ports without a wrapper of their own get one, pinned to gradle_version.
+if [ ! -f "$src/gradlew" ]; then
+  [ -n "$gradle_version" ] || { echo "no gradlew and no gradle_version for $app" >&2; exit 1; }
+  tmp="$(mktemp -d)"
+  ( cd "$tmp" && : > settings.gradle && gradle --no-daemon wrapper --gradle-version "$gradle_version" )
+  cp -r "$tmp/gradlew" "$tmp/gradlew.bat" "$tmp/gradle" "$src/"
+  rm -rf "$tmp"
+fi
+
+( cd "$src" && chmod +x gradlew && ./gradlew --no-daemon --stacktrace --continue "$task" )
 
 apk="$(ls "$src/$apkdir"/*.apk | head -n1)"
 version="$(python3 -c "import json;print(json.load(open('$meta'))['version_name'])")"

@@ -14,6 +14,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tomllib
@@ -60,6 +61,15 @@ def patches_for(name, variant):
     return sorted(base.glob("*.patch")) + sorted((base / variant).glob("*.patch"))
 
 
+def port_files(app):
+    """Files that are part of the build: the overlay directory and the post scripts."""
+    files = []
+    if app.get("overlay"):
+        files += sorted(p for p in (ROOT / "ports" / app["overlay"]).rglob("*") if p.is_file())
+    files += [ROOT / s for s in app.get("post_scripts", [])]
+    return files
+
+
 def input_hash(app, variant):
     """Hash of everything that decides the contents of a build of this app."""
     h = hashlib.sha256()
@@ -67,6 +77,9 @@ def input_hash(app, variant):
     h.update(json.dumps(app, sort_keys=True).encode())
     h.update(variant.encode())
     for p in patches_for(app["name"], variant):
+        h.update(p.read_bytes())
+    for p in port_files(app):
+        h.update(str(p.relative_to(ROOT)).encode())
         h.update(p.read_bytes())
     return h.hexdigest()[:16]
 
@@ -110,6 +123,8 @@ def cmd_plan(args):
             continue
         if args.only and name not in args.only.split(","):
             continue
+        if app.get("experimental") and not args.only:
+            continue  # only built when asked for by name, so that it cannot block releases
         for variant in app["variants"]:
             digest = input_hash(app, variant)
             changed = args.all or latest_input(bodies, name, variant) != digest
@@ -158,6 +173,9 @@ def cmd_prepare(args):
     _, apps = load()
     app = apps[args.app]
     src = WORK / args.app
+    if app.get("overlay"):
+        # Files for apps whose upstream has no Gradle build (or a different one).
+        shutil.copytree(ROOT / "ports" / app["overlay"], src, dirs_exist_ok=True)
     build_file = src / app["build_file"]
     text = build_file.read_text()
 
@@ -191,6 +209,9 @@ def cmd_prepare(args):
             sys.exit(f"prepare: '{rep['from']}' not found in {rep['file']}")
         for path in paths:
             path.write_text(path.read_text().replace(rep["from"], rep["to"]))
+
+    for script in app.get("post_scripts", []):
+        run([sys.executable, str(ROOT / script)], cwd=src)
 
     for patch in patches_for(args.app, args.variant):
         run(["git", "apply", "--unidiff-zero", "--check", str(patch)], cwd=src)
@@ -242,7 +263,7 @@ def cmd_obtainium(args):
     _, apps = load()
     entries = []
     for name, app in apps.items():
-        if not app["enabled"]:
+        if not app["enabled"] or app.get("experimental"):
             continue
         for variant in app["variants"]:
             if variant in app.get("prerelease_variants", ["probe"]):

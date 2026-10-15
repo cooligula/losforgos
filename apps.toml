@@ -231,6 +231,100 @@ from = "LOCAL_LDFLAGS += -ldl"
 to = "LOCAL_LDFLAGS += -ldl -Wl,-z,max-page-size=16384"
 
 # ---------------------------------------------------------------------------
+# Phase 3: ports of apps that upstream only builds with Soong.
+# ---------------------------------------------------------------------------
+
+# Dialer: experimental until it builds and has been tested as the default phone app on a device.
+# Built only with `workflow_dispatch` and only=dialer. ports/dialer holds the Gradle build.
+[apps.dialer]
+title = "Dialer"
+description = "Phone app"
+repo = "android_packages_apps_Dialer"
+sha = "81ae9e3a0246089dd89f644227509627d6e11a88"
+application_id = "org.losforgos.dialer"
+build_file = "build.gradle.kts"
+gradle_task = ":assembleRelease"
+apk_dir = "build/outputs/apk/release"
+gradle_version = "8.14.3"
+overlay = "dialer"
+post_scripts = ["ports/dialer/fix_r.py"]
+base_version = "23.0"
+experimental = true
+enabled = true
+
+# Names shared with the system Dialer (content provider authorities, a signature permission, the
+# in-call process) have to change, or the install would clash where a system Dialer exists.
+[[apps.dialer.replace]]
+file = "AndroidManifest.xml"
+from = '"com.android.dialer.files"'
+to = '"org.losforgos.dialer.files"'
+
+[[apps.dialer.replace]]
+file = "java/**/*.java"
+from = '"com.android.dialer.files"'
+to = '"org.losforgos.dialer.files"'
+
+[[apps.dialer.replace]]
+file = "AndroidManifest.xml"
+from = '"com.android.dialer.blocking.filterednumberprovider"'
+to = '"org.losforgos.dialer.blocking.filterednumberprovider"'
+
+[[apps.dialer.replace]]
+file = "AndroidManifest.xml"
+from = '"com.android.dialer.annotatedcalllog"'
+to = '"org.losforgos.dialer.annotatedcalllog"'
+
+[[apps.dialer.replace]]
+file = "java/**/*.java"
+from = '"com.android.dialer.annotatedcalllog"'
+to = '"org.losforgos.dialer.annotatedcalllog"'
+
+[[apps.dialer.replace]]
+file = "AndroidManifest.xml"
+from = '"com.android.dialer.lookup"'
+to = '"org.losforgos.dialer.lookup"'
+
+[[apps.dialer.replace]]
+file = "java/**/*.java"
+from = '"com.android.dialer.lookup"'
+to = '"org.losforgos.dialer.lookup"'
+
+[[apps.dialer.replace]]
+file = "AndroidManifest.xml"
+from = '"com.android.dialer.phonelookuphistory"'
+to = '"org.losforgos.dialer.phonelookuphistory"'
+
+[[apps.dialer.replace]]
+file = "java/**/*.java"
+from = '"com.android.dialer.phonelookuphistory"'
+to = '"org.losforgos.dialer.phonelookuphistory"'
+
+[[apps.dialer.replace]]
+file = "AndroidManifest.xml"
+from = '"com.android.dialer.preferredsimfallback"'
+to = '"org.losforgos.dialer.preferredsimfallback"'
+
+[[apps.dialer.replace]]
+file = "java/**/*.java"
+from = '"com.android.dialer.preferredsimfallback"'
+to = '"org.losforgos.dialer.preferredsimfallback"'
+
+[[apps.dialer.replace]]
+file = "AndroidManifest.xml"
+from = 'com.android.dialer.permission.DIALER_ORIGIN'
+to = 'org.losforgos.dialer.permission.DIALER_ORIGIN'
+
+[[apps.dialer.replace]]
+file = "java/**/*.java"
+from = 'com.android.dialer.permission.DIALER_ORIGIN'
+to = 'org.losforgos.dialer.permission.DIALER_ORIGIN'
+
+[[apps.dialer.replace]]
+file = "AndroidManifest.xml"
+from = 'android:process="com.android.incallui"'
+to = 'android:process=":incallui"'
+
+# ---------------------------------------------------------------------------
 # Later phases: listed so the plan is visible, but not built yet.
 # ---------------------------------------------------------------------------
-# messaging, contacts, dialer: Android.bp only, need a Gradle port (see docs/plan).
+# messaging, contacts: Android.bp only, need a Gradle port (see docs/plan).
