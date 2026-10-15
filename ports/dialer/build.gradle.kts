@@ -48,8 +48,8 @@ android {
 
     buildTypes {
         getByName("release") {
-            // Off while the port is experimental: the shrinker can remove classes that the Dialer
-            // loads by name (Dagger, protobuf, providers), which would crash at runtime.
+            // Keep shrinking off: with it on, calls and Recents broke (classes that the Dialer loads
+            // by name, via reflection and Dagger, were removed). Revisit with proper keep rules.
             isMinifyEnabled = false
             isShrinkResources = false
             proguardFiles(

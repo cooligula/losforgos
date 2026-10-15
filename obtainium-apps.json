@@ -87,6 +87,14 @@
       "name": "Keyboard",
       "preferredApkIndex": 0,
       "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Keyboard \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+    },
+    {
+      "id": "org.losforgos.dialer",
+      "url": "https://github.com/cooligula/losforgos",
+      "author": "cooligula",
+      "name": "Dialer",
+      "preferredApkIndex": 0,
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Dialer \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
     }
   ]
 }

@@ -35,9 +35,23 @@ Verify a download: the APK's signing certificate SHA-256 is in the repository va
 | Calculator | android_packages_apps_ExactCalculator | new, first build pending |
 | Clock | android_packages_apps_DeskClock | new, first build pending |
 | Keyboard | android_packages_inputmethods_LatinIME | new, first build pending, has native code |
+| Dialer (phone) | android_packages_apps_Dialer | Gradle port, tested on a device, see [Dialer notes](#dialer-notes) |
 | Gcam Bridge | Gcam-Services-Provider (photosonly) | modified: forwards secure review to Glimpse; `probe` variant is a pre-release for debugging |
 
-Planned: Messaging, Contacts and Dialer (these need a Gradle port). See [docs/plan.md](docs/plan.md).
+Planned: Messaging and Contacts (these need a Gradle port). See [docs/plan.md](docs/plan.md).
+
+## Dialer notes
+
+The Dialer is installed as `org.losforgos.dialer`, so it can sit next to a system Dialer. Set it as
+the default phone app (Settings, Apps, Default apps, Phone app) to use it.
+
+- Works: calls, Recents, contact matching, the in-call notification with Hang up, Speaker and Mute.
+- No visual voicemail and no call recording; both need system privileges.
+- Phone numbers match contacts whichever way the country prefix is written, using the SIM's region.
+  A number with an explicit different prefix does not match.
+- The search box and smart dial are not covered by prefix matching yet.
+- The live-update chip for ongoing calls needs Android 16.
+- Settings, Sounds and vibration needs "Modify system settings"; the app opens that page for you.
 
 ## How it works
 
