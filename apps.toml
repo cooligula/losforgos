@@ -710,6 +710,100 @@ to = '''  private static void removeIfPresent(PreferenceScreen screen, Preferenc
   /** Whether the device hardware has a vibrator. */
 '''
 
+# Proposed [[apps.dialer.replace]] entries for apps.toml (append after the existing dialer entries).
+# Verified to apply cleanly to the pinned upstream sha 81ae9e3; NOT compiled or tested on a device.
+
+# 1. The "close the notification shade" broadcast needs BROADCAST_CLOSE_SYSTEM_DIALOGS, a signature
+#    permission a user-installed app never gets. For targetSdk >= 31 the platform throws a
+#    SecurityException unless the app has a visible window, and the call-back action runs in a
+#    service with none. Tolerate the refusal (the shade closes by itself when a notification is tapped).
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/app/calllog/MissedCallNotifier.java"
+from = "    context.sendBroadcast(intent, null /* receiverPermission */, options);"
+to = '''    try {
+      context.sendBroadcast(intent, null /* receiverPermission */, options);
+    } catch (SecurityException e) {
+      LogUtil.w("MissedCallNotifier.closeSystemDialogs", "not allowed to close system dialogs: %s", e);
+    }'''
+
+[[apps.dialer.replace]]
+file = "java/com/android/incallui/NotificationBroadcastReceiver.java"
+from = "    context.sendBroadcast(intent, null /* receiverPermission */, options);"
+to = '''    try {
+      context.sendBroadcast(intent, null /* receiverPermission */, options);
+    } catch (SecurityException e) {
+      LogUtil.w("NotificationBroadcastReceiver.closeSystemDialogs", "not allowed: %s", e);
+    }'''
+
+# 2. Call back from the missed-call notification through an activity, like "Send SMS" already does.
+#    A service or receiver that a notification tap starts may not start the call activity itself
+#    (Android 12+ notification trampoline restriction), so the service route fails silently even
+#    once the exception above is gone.
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/app/calllog/MissedCallNotifier.java"
+from = '''    Intent intent = new Intent(context, CallLogNotificationsService.class);
+    intent.setAction(CallLogNotificationsService.ACTION_CALL_BACK_FROM_MISSED_CALL_NOTIFICATION);
+    intent.putExtra(MissedCallNotificationReceiver.EXTRA_NOTIFICATION_PHONE_NUMBER, number);
+    intent.setData(callUri);
+    // Use FLAG_UPDATE_CURRENT to make sure any previous pending intent is updated with the new
+    // extra.
+    return PendingIntent.getService(context, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);'''
+to = '''    Intent intent = new Intent(context, CallLogNotificationsActivity.class);
+    intent.setAction(CallLogNotificationsActivity.ACTION_CALL_BACK_FROM_MISSED_CALL_NOTIFICATION);
+    intent.putExtra(CallLogNotificationsActivity.EXTRA_MISSED_CALL_NUMBER, number);
+    intent.setData(callUri);
+    // Use FLAG_UPDATE_CURRENT to make sure any previous pending intent is updated with the new
+    // extra.
+    return PendingIntent.getActivity(context, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);'''
+
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/app/calllog/CallLogNotificationsActivity.java"
+from = '''  /**
+   * Extra to be included with {@link #ACTION_SEND_SMS_FROM_MISSED_CALL_NOTIFICATION} to identify'''
+to = '''  public static final String ACTION_CALL_BACK_FROM_MISSED_CALL_NOTIFICATION =
+      "com.android.dialer.calllog.CALL_BACK_FROM_MISSED_CALL_NOTIFICATION_ACTIVITY";
+
+  /**
+   * Extra to be included with {@link #ACTION_SEND_SMS_FROM_MISSED_CALL_NOTIFICATION} to identify'''
+
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/app/calllog/CallLogNotificationsActivity.java"
+from = '''      default:
+        LogUtil.d("CallLogNotificationsActivity.onCreate", "could not handle: " + intent);'''
+to = '''      case ACTION_CALL_BACK_FROM_MISSED_CALL_NOTIFICATION:
+        MissedCallNotifier.getInstance(this)
+            .callBackFromMissedCall(
+                intent.getStringExtra(EXTRA_MISSED_CALL_NUMBER), intent.getData());
+        break;
+      default:
+        LogUtil.d("CallLogNotificationsActivity.onCreate", "could not handle: " + intent);'''
+
+# 3. Hardening, for the "no incoming calls" report: if the foreground service cannot take the
+#    microphone type (RECORD_AUDIO not granted, or the process is in the background), keep the
+#    call notification as a plain phone-call foreground service instead of throwing in onCallAdded.
+[[apps.dialer.replace]]
+file = "java/com/android/incallui/call/TelecomAdapter.java"
+from = '''    inCallService.startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
+        | ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);'''
+to = '''    try {
+      inCallService.startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
+          | ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE);
+    } catch (SecurityException | IllegalStateException e) {
+      LogUtil.w("TelecomAdapter.startForegroundNotification",
+          "microphone type refused, retrying as phone call only: %s", e);
+      inCallService.startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL);
+    }'''
+
+# 4. Resources live under the application id (org.losforgos.dialer), not the Gradle namespace
+#    (com.android.dialer) that the R class uses, so the helpline string lookup by name never matched.
+#    Ask the resources for their own package name instead of hardcoding one.
+[[apps.dialer.replace]]
+file = "java/com/android/dialer/helplines/utils/ResourceUtils.java"
+from = 'res.getIdentifier(resourceName, "string", "com.android.dialer");'
+to = 'res.getIdentifier(resourceName, "string", res.getResourcePackageName(com.android.dialer.R.string.applicationLabel));'
+
 # Messaging: SMS/MMS app, usable as the default messaging app. ports/messaging holds the Gradle
 # build. Tried on a phone as the default SMS app.
 [apps.messaging]
