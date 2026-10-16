@@ -250,6 +250,8 @@ def cmd_prepare(args):
         "prerelease": prerelease,
         "input": input_hash(app, args.variant),
         "native": bool(app.get("native", False)),
+        # What a non-unmodified variant does differently; release.py puts it in the release notes.
+        "modified_summary": app.get("modified_summary", "") if args.variant != "unmodified" else "",
     }
     (src / "losforgos-meta.json").write_text(json.dumps(meta, indent=2))
     print(json.dumps(meta, indent=2))

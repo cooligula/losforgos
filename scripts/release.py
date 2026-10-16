@@ -30,6 +30,7 @@ for meta_path in sorted(signed_dir.glob("*/meta.json")):
         f"Upstream: LineageOS/{meta['upstream_repo']} @ `{meta['upstream_sha']}`\n"
         f"APK SHA-256: `{digest}`\n\n"
         f"{'Native libraries: yes, see the build log for the list.' if meta.get('native') else ''}\n\n"
+        f"{'Differs from the unmodified build: ' + meta['modified_summary'] + chr(10) + chr(10) if meta.get('modified_summary') else ''}"
         f"Build-Input: {meta['input']} variant={meta['variant']}\n"
     )
     with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False) as nf:
