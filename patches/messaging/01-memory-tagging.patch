@@ -1,0 +1,6 @@
+diff --git a/AndroidManifest.xml b/AndroidManifest.xml
+index fcc2967..3772719 100644
+--- a/AndroidManifest.xml
++++ b/AndroidManifest.xml
+@@ -86,0 +87 @@
++        android:memtagMode="async"

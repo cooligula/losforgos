@@ -1,0 +1,14 @@
+diff --git a/src/com/android/deskclock/alarms/AlarmActivity.java b/src/com/android/deskclock/alarms/AlarmActivity.java
+index 00091ab..cd035cd 100644
+--- a/src/com/android/deskclock/alarms/AlarmActivity.java
++++ b/src/com/android/deskclock/alarms/AlarmActivity.java
+@@ -260 +260 @@ public class AlarmActivity extends BaseActivity
+-            registerReceiver(mReceiver, filter, Context.RECEIVER_EXPORTED);
++            registerReceiver(mReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+diff --git a/src/com/android/deskclock/alarms/AlarmService.java b/src/com/android/deskclock/alarms/AlarmService.java
+index 9b8d11d..0b663ff 100644
+--- a/src/com/android/deskclock/alarms/AlarmService.java
++++ b/src/com/android/deskclock/alarms/AlarmService.java
+@@ -188 +188 @@ public class AlarmService extends Service {
+-        registerReceiver(mActionsReceiver, filter, Context.RECEIVER_EXPORTED);
++        registerReceiver(mActionsReceiver, filter, Context.RECEIVER_NOT_EXPORTED);

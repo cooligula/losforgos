@@ -257,7 +257,7 @@ What this means:
 - Memory tagging only affects native code. Apps with no native libraries are unaffected, because the Java/Kotlin runtime is not tagged.
 - CI step for every built APK: list the `.so` files, and fail if one is not 16 KB aligned (`zipalign -P 16`) or is stored compressed. This catches the usual compatibility problems before a device sees them.
 - I cannot test MTE in CI. Hosted runners have no MTE hardware. The check is manual on your device (Pixel 8 or newer): run each native-bearing app with memory tagging in its strictest mode and watch for crashes.
-- If an app is clean, we can opt it in with `android:memtagMode="sync"` in its manifest. That is a hardening gain, but only after your test. If an app crashes, the cause is usually a real memory bug in the native code. Then we either patch it, or document that the app needs GrapheneOS's per-app exploit-protection compatibility toggle.
+- If an app is clean, we opt it in with `android:memtagMode="async"` (what GrapheneOS Camera ships; `sync` is for debugging and costs more) in the "modified" variant of Keyboard, Aperture and Messaging, next to the unmodified build. That is a hardening gain, but only after your test. If an app crashes, the cause is usually a real memory bug in the native code. Then we either patch it, or document that the app needs GrapheneOS's per-app exploit-protection compatibility toggle.
 - Some details about which GrapheneOS settings are on by default are from my memory. The GrapheneOS features page only confirmed the allocator, kernel and Vanadium parts, so verify the per-app setting names on your device.
 
 ## 14. Secure review through Gcam Services Provider (Photos)

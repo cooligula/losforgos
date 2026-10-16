@@ -12,7 +12,7 @@
       "id": "org.losforgos.aperture",
       "url": "https://github.com/cooligula/losforgos",
       "author": "cooligula",
-      "name": "Aperture",
+      "name": "Aperture (unmodified)",
       "preferredApkIndex": 0,
       "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Aperture \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
     },
@@ -76,15 +76,15 @@
       "id": "org.losforgos.deskclock",
       "url": "https://github.com/cooligula/losforgos",
       "author": "cooligula",
-      "name": "Clock",
+      "name": "Clock (modified)",
       "preferredApkIndex": 0,
-      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Clock \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
+      "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Clock \", \"apkFilterRegEx\": \"-modified\\\\.apk$\", \"autoApkFilterByArch\": false}"
     },
     {
       "id": "org.losforgos.keyboard",
       "url": "https://github.com/cooligula/losforgos",
       "author": "cooligula",
-      "name": "Keyboard",
+      "name": "Keyboard (unmodified)",
       "preferredApkIndex": 0,
       "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Keyboard \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
     },
@@ -100,7 +100,7 @@
       "id": "org.losforgos.messaging",
       "url": "https://github.com/cooligula/losforgos",
       "author": "cooligula",
-      "name": "Messaging",
+      "name": "Messaging (unmodified)",
       "preferredApkIndex": 0,
       "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^Messaging \", \"apkFilterRegEx\": \"-unmodified\\\\.apk$\", \"autoApkFilterByArch\": false}"
     },
