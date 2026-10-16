@@ -9,3 +9,6 @@ keystore/
 *.keystore
 .DS_Store
 logs/
+
+# Local planning notes, kept out of the repository
+docs/plan.md
