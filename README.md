@@ -62,9 +62,9 @@ Verify a download: the APK's signing certificate SHA-256 is in the repository va
 | Twelve (music) | android_packages_apps_Twelve | building |
 | Camelot (PDF viewer) | android_packages_apps_Camelot | building |
 | Etar (calendar) | android_packages_apps_Etar | building |
-| Calculator | android_packages_apps_ExactCalculator | building |
-| Clock | android_packages_apps_DeskClock | building |
-| Keyboard | android_packages_inputmethods_LatinIME | building, has native code |
+| Calculator | android_packages_apps_ExactCalculator | tested on a device |
+| Clock | android_packages_apps_DeskClock | tested on a device |
+| Keyboard | android_packages_inputmethods_LatinIME | tested on a device, has native code; memory-tagging (MTE) result not reported yet |
 | Dialer (phone) | android_packages_apps_Dialer | Gradle port, tested on a device, see [Dialer notes](#dialer-notes) |
 | Messaging (SMS and MMS) | android_packages_apps_Messaging | Gradle port, tested on a device, has native code, see [Messaging notes](#messaging-notes) |
 | Contacts | android_packages_apps_Contacts | Gradle port, tested on a device, see [Contacts notes](#contacts-notes) |
@@ -115,6 +115,13 @@ uses the `org.losforgos.contacts` provider authorities, so it can sit next to a 
 - Features that need those privileges, such as parts of profile editing or SIM contact import where
   the system blocks it, may be limited.
 - Code shrinking is off.
+
+## Porting notes
+
+- An app whose Gradle namespace differs from its application id must not look up resources by
+  `R.class.getPackage().getName()`: resources live under the application id, so the lookup fails
+  (this crashed the Keyboard, fixed in e883a2a). Use the application id or `Context.getPackageName()`.
+- Dialer, Messaging and Contacts have been confirmed working on a device.
 
 ## How it works
 
