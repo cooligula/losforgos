@@ -15,7 +15,7 @@ variants = ["unmodified"]
 title = "Glimpse"
 description = "Gallery"
 repo = "android_packages_apps_Glimpse"
-sha = "8caac09fe1fe0cadb2fa828ac5755c8fb9481eb5"
+sha = "89b473594ec8ad01417624e670912450ce5df7e9"
 application_id = "org.losforgos.glimpse"
 # "modified" also shows every photo of a Pixel Camera lock screen session, not only the last one.
 # Both variants share the application id, so Obtainium follows only the modified one.
@@ -27,7 +27,7 @@ enabled = true
 title = "Aperture"
 description = "Camera"
 repo = "android_packages_apps_Aperture"
-sha = "36b3be3487b5154b1950ed2120225acdca6c51de"
+sha = "e4fc8292dd10573703531675749d104eb94b5eab"
 application_id = "org.losforgos.aperture"
 # "modified" opts the native libraries (zxing-cpp, CameraX) into memory tagging; see patches/aperture.
 variants = ["modified", "unmodified"]
@@ -40,7 +40,7 @@ native = true   # zxing-cpp; needs a memory tagging test on a Pixel 8 or newer
 title = "Jelly"
 description = "Browser"
 repo = "android_packages_apps_Jelly"
-sha = "8ba5afd7b9d4319f263dfeb9ce744924ad137812"
+sha = "64a74fbbc667b19d789c955677bf68f9b8b3eb7e"
 application_id = "org.losforgos.jelly"
 enabled = true
 
@@ -61,7 +61,7 @@ to = 'android:targetPackage="org.losforgos.recorder"'
 title = "Twelve"
 description = "Music player"
 repo = "android_packages_apps_Twelve"
-sha = "de4ff1b687f9bb53a229d60e61bfd563f3bad383"
+sha = "fb82f3c55451b128e1e29c611e582cb7699f7e24"
 application_id = "org.losforgos.twelve"
 enabled = true
 
@@ -69,7 +69,7 @@ enabled = true
 title = "Camelot"
 description = "PDF viewer"
 repo = "android_packages_apps_Camelot"
-sha = "ef9cfc2fcced48ff46f6be580f3f653b05bae08e"
+sha = "cdaa5702eea5c725599b650bede715550dbd8a4c"
 application_id = "org.losforgos.camelot"
 enabled = true
 
@@ -168,7 +168,7 @@ to = "org.losforgos.deskclock_preferences.xml"
 title = "Keyboard"
 description = "Keyboard (AOSP LatinIME)"
 repo = "android_packages_inputmethods_LatinIME"
-sha = "e417ba6faa5dbb66ba70a038a52ddc8f60bb5795"
+sha = "c9e8aa87038e1194d2717ac48f207df4068cebd9"
 application_id = "org.losforgos.keyboard"
 # "modified" opts the dictionary library (libjni_latinime) into memory tagging; see patches/keyboard.
 variants = ["modified", "unmodified"]
@@ -265,7 +265,7 @@ to = "LOCAL_LDFLAGS += -ldl -Wl,-z,max-page-size=16384"
 title = "Dialer"
 description = "Phone app"
 repo = "android_packages_apps_Dialer"
-sha = "81ae9e3a0246089dd89f644227509627d6e11a88"
+sha = "9c5039d8d24d11128659f2971bf8e098978a7ad7"
 application_id = "org.losforgos.dialer"
 build_file = "build.gradle.kts"
 gradle_task = ":assembleRelease"
